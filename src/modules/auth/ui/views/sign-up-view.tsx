@@ -19,7 +19,8 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { OnboardingData } from "@/types/onboarding";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -29,7 +30,15 @@ const formSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
-export const SignUpView = () => {
+interface SignUpViewProps {
+  onboardingData?: OnboardingData;
+  onBack?: () => void;
+}
+
+export const SignUpView = ({
+  onboardingData,
+  onBack,
+}: SignUpViewProps = {}) => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,11 +56,36 @@ export const SignUpView = () => {
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setError(null);
-      await authClient.signUp.email({
+      const result = await authClient.signUp.email({
         email: values.email,
         password: values.password,
         name: values.name,
       });
+
+      // If we have onboarding data, update the user profile with additional fields
+      if (
+        onboardingData?.selectedLanguage &&
+        onboardingData?.selectedLevel &&
+        result.data?.user
+      ) {
+        try {
+          // Update user with onboarding data using a separate API call
+          await fetch("/api/auth/update-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: result.data.user.id,
+              learningLanguage: onboardingData.selectedLanguage.code,
+              languageLevel: onboardingData.selectedLevel.code,
+            }),
+          });
+        } catch (updateErr) {
+          console.warn(
+            "Failed to update profile with onboarding data:",
+            updateErr
+          );
+        }
+      }
 
       // Redirect to dashboard after successful sign-up
       router.push("/dashboard");
@@ -116,9 +150,29 @@ export const SignUpView = () => {
                 className="space-y-6"
               >
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-2xl font-bold">Let's get started</h1>
+                  {onBack && (
+                    <div className="flex items-center justify-between w-full mb-4">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={onBack}
+                        aria-label="Go back to level selection"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                      <h1 className="text-2xl font-bold">Almost there!</h1>
+                      <div className="w-8" />{" "}
+                      {/* Spacer for center alignment */}
+                    </div>
+                  )}
+                  {!onBack && (
+                    <h1 className="text-2xl font-bold">Let's get started</h1>
+                  )}
                   <p className="text-muted-foreground text-balance">
-                    Create your account
+                    {onboardingData?.selectedLanguage
+                      ? `Just a bit more info to set up your ${onboardingData.selectedLanguage.name} account.`
+                      : "Create your account"}
                   </p>
                 </div>
 

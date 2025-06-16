@@ -18,6 +18,11 @@ export const user = pgTable("user", {
   preferredLanguage: text("preferred_language")
     .$defaultFn(() => "en")
     .notNull(),
+  translationLanguage: text("translation_language")
+    .$defaultFn(() => "en")
+    .notNull(),
+  learningLanguage: text("learning_language"),
+  languageLevel: text("language_level"),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
