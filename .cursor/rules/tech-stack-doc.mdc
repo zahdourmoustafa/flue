@@ -1,0 +1,97 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Fluentzy MVP Tech Stack Documentation
+
+## 1. Overview
+
+This document outlines the technology stack chosen for the Minimum Viable Product (MVP) of Fluentzy. The selection prioritizes modern, scalable, and developer-friendly technologies to ensure rapid development, maintainability, and future extensibility, especially concerning dynamic language support and AI integration.
+
+## 2. Frontend Stack
+
+Fluentzy's frontend will be built using a combination of Next.js, Tailwind CSS, and ShadCN UI components. This combination provides a robust, performant, and aesthetically pleasing user interface.
+
+### 2.1. Next.js
+
+*   **Purpose:** Next.js is a React framework for building full-stack web applications. It enables server-side rendering (SSR), static site generation (SSG), and API routes, which are crucial for performance, SEO, and building a cohesive full-stack application.
+*   **Benefits:**
+    *   **Performance:** Optimized for fast loading times through SSR and SSG.
+    *   **Developer Experience:** Provides a streamlined development workflow with features like file-system based routing and API routes.
+    *   **Scalability:** Supports large-scale applications with efficient data fetching and rendering strategies.
+    *   **Dynamic Content:** Ideal for handling dynamic content based on user language preferences.
+
+### 2.2. Tailwind CSS
+
+*   **Purpose:** Tailwind CSS is a utility-first CSS framework that allows for rapid UI development by providing low-level utility classes directly in the HTML markup.
+*   **Benefits:**
+    *   **Speed of Development:** Eliminates the need for writing custom CSS for most components, accelerating UI development.
+    *   **Consistency:** Promotes a consistent design system by reusing utility classes.
+    *   **Responsiveness:** Simplifies the creation of responsive designs with built-in responsive utility variants.
+    *   **Customization:** Highly customizable to match Fluentzy's specific design requirements (e.g., light blue primary color).
+
+### 2.3. ShadCN UI
+
+*   **Purpose:** ShadCN UI is a collection of reusable components built with Radix UI and Tailwind CSS. It provides accessible and customizable UI primitives that can be easily integrated into Next.js applications.
+*   **Benefits:**
+    *   **Accessibility:** Components are built with accessibility in mind, ensuring a good user experience for all.
+    *   **Customization:** Offers a high degree of customization, allowing components to be styled to match Fluentzy's unique aesthetic.
+    *   **Developer Experience:** Simplifies the creation of complex UI elements, reducing development time and effort.
+    *   **Consistency:** Ensures a consistent look and feel across the application by providing a unified set of UI components.
+
+
+
+
+## 3. Backend Stack
+
+The backend architecture for Fluentzy will be designed to support real-time interactions, dynamic content delivery, and seamless integration with various AI services. While the core backend framework is not explicitly stated, the integration points are well-defined.
+
+### 3.1. Database: Neon.tech with Drizzle ORM
+
+*   **Neon.tech:**
+    *   **Purpose:** Neon is a serverless PostgreSQL database designed for modern applications. It offers features like branching, autoscaling, and a generous free tier, making it suitable for an MVP with potential for rapid growth.
+    *   **Benefits:**
+        *   **Serverless & Scalable:** Automatically scales to handle varying loads, reducing operational overhead.
+        *   **Branching:** Enables efficient development workflows by allowing developers to create isolated database branches for features or environments.
+        *   **Cost-Effective:** Pay-as-you-go model, ideal for an MVP.
+*   **Drizzle ORM:**
+    *   **Purpose:** Drizzle ORM is a modern TypeScript ORM for SQL databases. It provides a type-safe and performant way to interact with the PostgreSQL database.
+    *   **Benefits:**
+        *   **Type Safety:** Ensures data consistency and reduces runtime errors through strong typing.
+        *   **Performance:** Designed for high performance with a focus on raw SQL query generation.
+        *   **Developer Experience:** Offers an intuitive API for database interactions, simplifying data management.
+
+### 3.2. Authentication: Better-Auth
+
+*   **Purpose:** Better-Auth will be used for managing user authentication, including sign-up, login, and session management.
+*   **Benefits:**
+    *   **Security:** Provides robust security features for user authentication.
+    *   **Ease of Integration:** Designed for straightforward integration into web applications.
+    *   **Scalability:** Can handle a growing number of users and authentication requests.
+
+### 3.3. AI Services Integration
+
+Fluentzy heavily relies on external AI services for its core functionalities. These services will be integrated via their respective APIs.
+
+*   **OpenAI (for Chat and Dialogue Modes, and Correction)**
+    *   **Purpose:** OpenAI provides advanced language models capable of generating human-like text, understanding context, and performing tasks like text correction and conversational AI.
+    *   **Benefits:**
+        *   **Natural Language Understanding & Generation:** Powers the AI-client conversations in Chat and Dialogue modes.
+        *   **Real-time Correction:** Enables the AI to identify and correct grammatical and spelling errors in user input.
+        *   **Versatility:** Can be fine-tuned or prompted to act as an expert language teacher.
+*   **ElevenLabs (for Voice Output)**
+    *   **Purpose:** ElevenLabs specializes in high-quality text-to-speech synthesis, generating natural-sounding voices.
+    *   **Benefits:**
+        *   **Realistic Voice Generation:** Provides lifelike audio for the AI's responses, enhancing the immersive learning experience.
+        *   **Multi-language Support:** Supports various languages, crucial for Fluentzy's dynamic language features.
+        *   **Real-time Synthesis:** Capable of generating audio quickly for seamless conversational flow.
+*   **Tavus AI (for Video Call Meeting Mode)**
+    *   **Purpose:** Tavus AI is utilized for generating realistic AI video avatars and facilitating live video conversations.
+    *   **Benefits:**
+        *   **Interactive Video Experience:** Enables a live, face-to-face interaction with an AI language teacher.
+        *   **Scenario-based Role-playing:** Allows the AI to embody different personas for various conversational scenarios.
+        *   **Immersive Learning:** Provides a highly engaging and realistic practice environment for speaking skills.
+
+
+

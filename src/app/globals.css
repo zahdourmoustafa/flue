@@ -1,3 +1,7 @@
+@layer stream, stream-overrides;
+
+@import "stream-chat-react/dist/css/v2/index.css" layer(stream);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,7 +47,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.75rem;
-    
+
     /* Fluentzy custom colors */
     --fluentzy-blue: 230 100% 68%;
     --fluentzy-green: 142 71% 45%;
@@ -52,7 +56,7 @@
     --fluentzy-red: 0 84% 60%;
     --fluentzy-yellow: 48 100% 67%;
   }
-  
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -93,37 +97,206 @@
 
 @layer utilities {
   .fluentzy-gradient {
-    background: linear-gradient(135deg, hsl(var(--fluentzy-blue)) 0%, hsl(var(--fluentzy-purple)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--fluentzy-blue)) 0%,
+      hsl(var(--fluentzy-purple)) 100%
+    );
   }
-  
+
   .fluentzy-chat-gradient {
-    background: linear-gradient(135deg, hsl(var(--fluentzy-green)) 0%, hsl(var(--fluentzy-blue)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--fluentzy-green)) 0%,
+      hsl(var(--fluentzy-blue)) 100%
+    );
   }
-  
+
   .fluentzy-orange-gradient {
-    background: linear-gradient(135deg, hsl(var(--fluentzy-orange)) 0%, hsl(var(--fluentzy-red)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--fluentzy-orange)) 0%,
+      hsl(var(--fluentzy-red)) 100%
+    );
   }
-  
+
   .fluentzy-success {
-    background: linear-gradient(135deg, hsl(var(--fluentzy-green)) 0%, hsl(142 71% 65%) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--fluentzy-green)) 0%,
+      hsl(142 71% 65%) 100%
+    );
   }
-  
+
   .animate-pulse-success {
     animation: pulse-success 0.6s ease-in-out;
   }
-  
+
   .animate-shake-error {
     animation: shake-error 0.6s ease-in-out;
   }
 }
 
 @keyframes pulse-success {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes shake-error {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@layer stream-overrides {
+  /* WhatsApp-style customizations */
+  .str-chat {
+    --str-chat__primary-color: #25d366;
+    --str-chat__active-primary-color: #075e54;
+    --str-chat__surface-color: #f0f2f5;
+    --str-chat__secondary-surface-color: #ffffff;
+    --str-chat__primary-surface-color: #dcf8c6;
+    --str-chat__primary-surface-color-low-emphasis: #e8f5e8;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      Helvetica, Arial, sans-serif;
+  }
+
+  .str-chat__channel-list {
+    background: white;
+    border-right: 1px solid #e0e0e0;
+  }
+
+  .str-chat__channel-preview {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+  }
+
+  .str-chat__channel-preview:hover {
+    background-color: #f5f5f5;
+  }
+
+  .str-chat__channel-preview--active {
+    background-color: #e8f5e8 !important;
+    border-left: 4px solid #25d366;
+  }
+
+  .str-chat__message-list {
+    background: #f0f2f5;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .str-chat__message--me .str-chat__message-bubble {
+    background: #dcf8c6 !important;
+    border-radius: 18px 18px 4px 18px;
+    max-width: 80%;
+    margin-left: auto;
+  }
+
+  .str-chat__message--other .str-chat__message-bubble {
+    background: white !important;
+    border-radius: 18px 18px 18px 4px;
+    max-width: 80%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .str-chat__message-input {
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    padding: 16px;
+  }
+
+  .str-chat__message-input .str-chat__textarea__textarea {
+    border-radius: 25px;
+    border: 1px solid #e0e0e0;
+    padding: 8px 16px;
+    background: #f0f2f5;
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+  }
+
+  .str-chat__message-input .str-chat__textarea__textarea:focus {
+    outline: none;
+    border-color: #25d366;
+    background: white;
+  }
+
+  .str-chat__send-button {
+    background: #25d366 !important;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: 8px;
+  }
+
+  .str-chat__send-button:hover {
+    background: #128c7e !important;
+  }
+
+  .str-chat__message-timestamp {
+    font-size: 11px;
+    color: #667781;
+    margin-top: 4px;
+  }
+
+  .str-chat__message-status {
+    color: #25d366;
+    margin-left: 4px;
+  }
+
+  /* Channel header customization */
+  .str-chat__header-livestream {
+    background: #075e54;
+    color: white;
+  }
+
+  /* Emoji picker styling */
+  .str-chat__emoji-picker {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Thread customization */
+  .str-chat__thread {
+    border-left: 1px solid #e0e0e0;
+    background: white;
+  }
+
+  /* Typing indicator */
+  .str-chat__typing-indicator {
+    color: #667781;
+    font-style: italic;
+    padding: 8px 16px;
+  }
+
+  /* Custom scrollbar */
+  .str-chat__message-list-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .str-chat__message-list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .str-chat__message-list-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .str-chat__message-list-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
 }

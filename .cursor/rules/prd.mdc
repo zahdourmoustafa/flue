@@ -1,0 +1,137 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# Product Requirements Document (PRD) for Fluentzy MVP
+
+## 1. Introduction
+
+This Product Requirements Document (PRD) outlines the core features and functionalities for the Minimum Viable Product (MVP) of Fluentzy, a web application designed to help users improve their language speaking skills. Fluentzy aims to provide an immersive and interactive learning experience through AI-powered conversations, dialogue simulations, and live video call meetings with AI language teachers. The initial MVP will support English and Spanish, with a clear roadmap for expanding to additional languages in the future. The application will prioritize a dynamic and personalized user experience, adapting content and interactions based on the user's chosen learning language.
+
+## 2. Goals
+
+The primary goals for the Fluentzy MVP are:
+
+*   **Enable effective language speaking practice:** Provide users with diverse opportunities to practice speaking in a low-pressure, AI-driven environment.
+*   **Personalize the learning experience:** Dynamically adjust the application's language and content based on the user's selected learning language.
+*   **Provide immediate and constructive feedback:** Utilize AI to correct user's written language in real-time, fostering continuous improvement.
+*   **Create an engaging and intuitive user interface:** Design a visually appealing and user-friendly application that encourages consistent engagement.
+*   **Establish a scalable foundation:** Build the application with a modular architecture that facilitates the seamless integration of new languages and features.
+
+
+
+
+## 3. Target Audience
+
+Fluentzy is designed for individuals who are learning a new language and are looking for practical, interactive, and accessible ways to improve their speaking proficiency. This includes:
+
+*   **Beginner to Intermediate Language Learners:** Individuals who have a foundational understanding of a language but struggle with conversational fluency and confidence.
+*   **Self-directed Learners:** Users who prefer to learn at their own pace and seek supplementary tools to enhance their language studies.
+*   **Individuals Seeking Practical Application:** Learners who want to practice real-world scenarios and receive immediate feedback without the pressure of human interaction.
+*   **Users Interested in AI-Powered Learning:** Individuals open to leveraging advanced AI technologies for personalized and adaptive language instruction.
+
+
+
+
+## 4. Key Features
+
+### 4.1. User Onboarding and Language Selection
+
+Upon initial sign-up, users will be guided through an interactive onboarding process, similar to popular language learning applications like Talkpal or Duolingo. This process will include:
+
+*   **Language Selection:** Users will be prompted to select the language they wish to learn from the available options (initially English and Spanish). This selection will dynamically influence the application's interface language and content.
+*   **Email-based Signup:** Following language selection, users will complete their registration using their email address.
+
+### 4.2. Dynamic Language Switching
+
+Fluentzy will offer a seamless and dynamic language switching mechanism. The application's entire interface, including welcome messages, feature descriptions, and all content, will adapt to the language chosen by the user during onboarding or subsequently updated in their profile. This ensures a fully immersive experience in the target language.
+
+### 4.3. Dashboard
+
+The user dashboard will serve as the central hub for all Fluentzy features and functionalities. The dashboard will dynamically display content and welcome messages in the language selected by the user. For instance, if Spanish is chosen, all dashboard elements and greetings will be in Spanish.
+
+### 4.4. Chat Mode
+
+The Chat Mode will simulate a WhatsApp-like conversation experience between the user and an AI language teacher. Key functionalities include:
+
+*   **AI-Initiated Conversation:** The AI will initiate conversations in the language chosen by the user during onboarding.
+*   **Text and Speech Output:** The AI will generate text messages and simultaneously provide an audio rendition of the message, allowing users to read and hear the AI's responses concurrently.
+*   **Real-time Writing Correction:** A crucial feature of the Chat Mode is the AI's ability to correct the user's written input in real-time. If the user makes grammatical errors, spelling mistakes, or uses inappropriate vocabulary, the AI will provide immediate and constructive feedback, acting as an expert language teacher.
+*   **AI Persona:** The AI will consistently act as an expert language teacher for the language the client has chosen, providing accurate and helpful guidance.
+
+### 4.5. Dialogue Mode
+
+The Dialogue Mode will offer a structured conversational practice environment, similar in design and interface to the Chat Mode. This feature will allow users to engage in specific dialogue scenarios. Key functionalities include:
+
+*   **Scenario Selection:** Users can choose from a variety of pre-defined dialogue scenarios (e.g., ordering a taxi, ordering pizza, checking into a hotel).
+*   **Role-Playing AI:** The AI will adopt a specific role within the chosen scenario (e.g., a waiter in the 'ordering pizza' scenario, a taxi driver in the 'ordering a taxi' scenario).
+*   **Contextual Conversation:** The conversation will unfold naturally within the context of the selected scenario, with the AI guiding the dialogue based on its assigned role.
+*   **Real-time Writing Correction:** Similar to Chat Mode, the AI will provide real-time correction for the user's written input, ensuring accurate and appropriate language use within the dialogue context.
+
+### 4.6. Video Call Meeting Mode
+
+The Video Call Meeting Mode will provide a live, interactive video call experience with an AI. This feature aims to simulate real-life conversational situations. Key functionalities include:
+
+*   **Scenario-based Meetings:** Users can select from various meeting scenarios (e.g., job interview, casual chat with a friend, discussion with a history teacher).
+*   **AI Role-Playing:** The AI will embody the chosen role and engage in a live conversation with the user.
+*   **Interactive Conversation:** The AI will respond dynamically to the user's spoken input, creating a fluid and realistic conversational flow.
+
+
+
+
+### 4.7. Profile Page
+
+Users will have access to a profile page where they can manage their account settings, including the ability to change their preferred learning language. If a user switches their learning language (e.g., from Spanish to English), the entire application interface and all dynamic content will immediately reflect this change.
+
+## 5. Non-Functional Requirements
+
+### 5.1. UI/UX
+
+Fluentzy will feature a catchy, beautiful, and intuitive user interface, drawing inspiration from leading language learning applications like Duolingo and Talkpal. The primary color scheme will utilize a light blue color to create a visually appealing and engaging experience. The design will prioritize user-friendliness, ease of navigation, and a consistent aesthetic across all features.
+
+### 5.2. Scalability
+
+The application architecture will be designed to support future expansion, particularly the seamless integration of additional languages beyond English and Spanish. The backend and database structures will be flexible enough to accommodate new language packs, AI models, and content without requiring significant re-architecture.
+
+### 5.3. Performance
+
+Fluentzy will deliver a highly responsive and performant user experience, especially in real-time interactive features such as Chat Mode, Dialogue Mode, and Video Call Meeting Mode. Latency will be minimized to ensure smooth and natural conversations with the AI.
+
+
+
+
+## 6. Success Metrics
+
+The success of the Fluentzy MVP will be measured by the following key metrics:
+
+*   **User Engagement:**
+    *   Daily Active Users (DAU) and Monthly Active Users (MAU).
+    *   Average session duration.
+    *   Feature adoption rates (e.g., percentage of users engaging with Chat Mode, Dialogue Mode, Video Call Mode).
+*   **User Retention:**
+    *   Day 1, Day 7, and Day 30 retention rates.
+    *   Churn rate.
+*   **User Satisfaction:**
+    *   Net Promoter Score (NPS) collected through in-app surveys.
+    *   User feedback and reviews.
+*   **Language Learning Progress (Qualitative):**
+    *   Anecdotal evidence from user testimonials regarding improved speaking confidence and proficiency.
+    *   Feedback on the effectiveness of AI correction and teaching.
+
+## 7. Future Considerations
+
+While not part of the MVP, the following features and enhancements are envisioned for future iterations of Fluentzy:
+
+*   **Additional Languages:** Expansion to include more languages based on user demand and market analysis.
+*   **Progress Tracking and Analytics:** Detailed user progress tracking, performance analytics, and personalized learning paths.
+*   **Gamification Elements:** Introduction of points, badges, leaderboards, and other gamified elements to enhance engagement and motivation.
+*   **Community Features:** Integration of social features, allowing users to connect with other learners or participate in group challenges.
+*   **Advanced AI Features:** More sophisticated AI models for nuanced feedback, accent analysis, and personalized curriculum generation.
+*   **Offline Mode:** Ability to download lessons or conversational scenarios for offline practice.
+*   **Mobile Applications:** Development of native iOS and Android applications to complement the web experience.
+
+
+
+

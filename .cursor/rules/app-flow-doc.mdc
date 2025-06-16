@@ -1,0 +1,284 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Fluentzy MVP App Flow Documentation
+
+## 1. User Registration and Onboarding Flow
+
+This section details the steps a new user takes from initial access to the application through to their first interaction with the dashboard, including language selection and account creation.
+
+### 1.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant DB as Database
+
+    U->>A: Accesses Fluentzy Web App
+    A->>U: Displays Language Selection Page
+    U->>A: Selects Learning Language (e.g., Spanish)
+    A->>U: Displays Signup Page (Email, Password)
+    U->>A: Enters Email and Password
+    A->>A: Validates Input
+    A->>DB: Stores User Credentials and Selected Language
+    DB-->>A: Confirmation
+    A->>A: Authenticates User (via Better-Auth)
+    A->>U: Redirects to Dashboard (in selected language)
+```
+
+### 1.2. Flow Description
+
+1.  **User Access:** A new user navigates to the Fluentzy web application.
+2.  **Language Selection Prompt:** The application immediately presents a clear and intuitive language selection interface. This interface will highlight the available learning languages (initially English and Spanish).
+3.  **User Selects Language:** The user chooses their desired learning language. This choice is crucial as it will dictate the primary language of the application interface and content upon successful registration.
+4.  **Signup Page Display:** After selecting a language, the user is directed to a standard signup page, requiring an email address and password.
+5.  **Credential Submission:** The user inputs their email and a chosen password.
+6.  **Input Validation:** The application performs server-side validation on the provided credentials to ensure format correctness and uniqueness of the email.
+7.  **User Data Storage:** Validated user credentials, along with the previously selected learning language, are securely stored in the database via Drizzle ORM.
+8.  **Authentication:** The application utilizes Better-Auth to handle user authentication, establishing a secure session for the newly registered user.
+9.  **Dashboard Redirection:** Upon successful registration and authentication, the user is redirected to their personalized dashboard. Crucially, the dashboard interface, including welcome messages and feature labels, will be rendered entirely in the language the user selected during onboarding.
+
+
+
+
+## 2. Dashboard and Language Switching Flow
+
+This section outlines how users interact with the dashboard and the process for dynamically changing their preferred learning language after initial setup.
+
+### 2.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant DB as Database
+
+    U->>A: Logs in / Accesses Dashboard
+    A->>DB: Retrieves User's Preferred Language
+    DB-->>A: Preferred Language (e.g., Spanish)
+    A->>U: Displays Dashboard (in Spanish)
+    U->>A: Navigates to Profile Page
+    A->>U: Displays Profile Page with Language Option
+    U->>A: Selects New Language (e.g., English)
+    A->>DB: Updates User's Preferred Language
+    DB-->>A: Confirmation
+    A->>U: Redirects to Dashboard (in English)
+```
+
+### 2.2. Flow Description
+
+1.  **Dashboard Access:** A registered user logs into Fluentzy or directly accesses their dashboard.
+2.  **Language Retrieval:** The application queries the database to retrieve the user's previously selected or updated preferred learning language.
+3.  **Dynamic Dashboard Display:** The dashboard is rendered, with all UI elements, welcome messages, and initial content presented in the retrieved preferred language (e.g., Spanish).
+4.  **Navigation to Profile:** The user navigates to their profile page, typically accessible via a dedicated icon or menu item.
+5.  **Profile Page Display:** The profile page loads, displaying various user settings, including an option to change the learning language.
+6.  **User Selects New Language:** The user selects a different language from the available options (e.g., English).
+7.  **Language Update in Database:** The application sends a request to the backend to update the user's preferred language in the database.
+8.  **Database Confirmation:** The database confirms the successful update.
+9.  **Dashboard Redirection (Language Applied):** The user is then redirected back to the dashboard. Crucially, the entire application interface, including all features and content, will now be displayed in the newly selected language (e.g., English), providing a seamless and immediate language switch experience.
+
+
+
+
+## 3. Chat Mode Flow
+
+This section details the interaction flow within the Chat Mode, where users engage in text and voice conversations with an AI language teacher, receiving real-time corrections.
+
+### 3.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant AI as AI Service (OpenAI)
+    participant VL as Voice Service (ElevenLabs)
+
+    U->>A: Selects 'Chat Mode'
+    A->>A: Retrieves User's Preferred Language
+    A->>AI: Initiates Conversation Prompt (in preferred language)
+    AI-->>A: AI Text Response
+    A->>VL: Sends AI Text for Voice Generation
+    VL-->>A: AI Voice Audio
+    A->>U: Displays AI Text Message & Plays AI Voice Audio
+    U->>A: Types Message
+    A->>AI: Sends User Message for Correction & Response Generation
+    AI-->>A: Corrected User Text & AI Text Response
+    A->>VL: Sends AI Text for Voice Generation
+    VL-->>A: AI Voice Audio
+    A->>U: Displays Corrected User Text, AI Text Message & Plays AI Voice Audio
+    loop Continuous Conversation
+        U->>A: Types Message
+        A->>AI: Sends User Message for Correction & Response Generation
+        AI-->>A: Corrected User Text & AI Text Response
+        A->>VL: Sends AI Text for Voice Generation
+        VL-->>A: AI Voice Audio
+        A->>U: Displays Corrected User Text, AI Text Message & Plays AI Voice Audio
+    end
+```
+
+### 3.2. Flow Description
+
+1.  **Enter Chat Mode:** The user navigates to and selects the 'Chat Mode' feature from the dashboard.
+2.  **Language Retrieval:** The application internally retrieves the user's currently selected learning language to ensure the AI interaction is in the correct language.
+3.  **AI Initiates Conversation:** The application sends an initial conversation prompt to the OpenAI service, instructing the AI to begin a conversation in the user's preferred language, acting as an expert language teacher.
+4.  **AI Text Response:** OpenAI processes the prompt and returns a text-based response.
+5.  **Voice Generation:** The AI's text response is then sent to the ElevenLabs voice synthesis service to generate corresponding audio.
+6.  **Display and Play AI Message:** The application displays the AI's text message in the chat interface and simultaneously plays the generated voice audio, allowing the user to read and listen.
+7.  **User Types Message:** The user types their response into the chat input field.
+8.  **Correction and Response Generation:** The user's typed message is sent to the OpenAI service. OpenAI performs two key functions:
+    *   **Correction:** It analyzes the user's input for grammatical errors, spelling mistakes, and inappropriate vocabulary, providing a corrected version of the user's text.
+    *   **Response Generation:** It generates a relevant and contextual AI response to the user's message, continuing the conversation as an expert language teacher.
+9.  **Voice Generation (AI Response):** The AI's new text response is sent to ElevenLabs for voice audio generation.
+10. **Display Corrected User Text and AI Message:** The application updates the chat interface to display the corrected version of the user's message, the AI's new text message, and plays the AI's voice audio.
+11. **Continuous Conversation:** This cycle (User types -> AI corrects and responds -> AI voice generated -> Display and Play) continues as long as the user engages in the chat, providing a dynamic and corrective learning environment.
+
+
+
+
+## 4. Dialogue Mode Flow
+
+This section describes the flow for the Dialogue Mode, which allows users to practice language in specific, scenario-based conversations with an AI, complete with real-time corrections.
+
+### 4.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant AI as AI Service (OpenAI)
+    participant VL as Voice Service (ElevenLabs)
+
+    U->>A: Selects 'Dialogue Mode'
+    A->>A: Retrieves User's Preferred Language
+    A->>U: Displays List of Dialogue Scenarios
+    U->>A: Selects a Scenario (e.g., 'Ordering Pizza')
+    A->>AI: Initiates Dialogue with Scenario Context (e.g., AI acts as 'Waiter')
+    AI-->>A: AI Text Response (e.g., 'Welcome to our pizzeria...')
+    A->>VL: Sends AI Text for Voice Generation
+    VL-->>A: AI Voice Audio
+    A->>U: Displays AI Text Message & Plays AI Voice Audio
+    U->>A: Types Message (User's order)
+    A->>AI: Sends User Message for Correction & Contextual Response
+    AI-->>A: Corrected User Text & AI Text Response
+    A->>VL: Sends AI Text for Voice Generation
+    VL-->>A: AI Voice Audio
+    A->>U: Displays Corrected User Text, AI Text Message & Plays AI Voice Audio
+    loop Continuous Dialogue within Scenario
+        U->>A: Types Message
+        A->>AI: Sends User Message for Correction & Contextual Response
+        AI-->>A: Corrected User Text & AI Text Response
+        A->>VL: Sends AI Text for Voice Generation
+        VL-->>A: AI Voice Audio
+        A->>U: Displays Corrected User Text, AI Text Message & Plays AI Voice Audio
+    end
+```
+
+### 4.2. Flow Description
+
+1.  **Enter Dialogue Mode:** The user selects the 'Dialogue Mode' feature from the dashboard.
+2.  **Language Retrieval:** The application retrieves the user's preferred learning language.
+3.  **Scenario Selection:** The application presents a list of available dialogue scenarios (e.g., 'Ordering Taxi', 'Ordering Pizza', 'Hotel Check-in').
+4.  **User Selects Scenario:** The user chooses a specific scenario to practice.
+5.  **AI Initiates Dialogue:** The application sends a request to the OpenAI service, providing the selected scenario's context and instructing the AI to adopt a specific role within that scenario (e.g., 'waiter' for 'Ordering Pizza'). The AI initiates the conversation based on this context.
+6.  **AI Text Response:** OpenAI generates a text response relevant to the scenario and its assigned role.
+7.  **Voice Generation:** The AI's text response is sent to ElevenLabs for voice audio generation.
+8.  **Display and Play AI Message:** The application displays the AI's text message in the chat interface and plays the generated voice audio.
+9.  **User Types Message:** The user types their response, attempting to engage in the dialogue according to the scenario.
+10. **Correction and Contextual Response:** The user's message is sent to OpenAI. OpenAI performs:
+    *   **Correction:** It corrects any grammatical errors, spelling mistakes, or inappropriate vocabulary in the user's input.
+    *   **Contextual Response:** It generates a relevant and logical AI response that continues the dialogue within the chosen scenario, maintaining its assigned role.
+11. **Voice Generation (AI Response):** The AI's new text response is sent to ElevenLabs for voice audio generation.
+12. **Display Corrected User Text and AI Message:** The application updates the chat interface to show the corrected version of the user's message, the AI's new text message, and plays the AI's voice audio.
+13. **Continuous Dialogue:** This interactive loop continues, allowing the user to practice conversational skills in various real-world contexts with immediate, scenario-specific feedback and corrections.
+
+
+
+
+## 5. Video Call Meeting Mode Flow
+
+This section describes the flow for the Video Call Meeting Mode, which enables live, interactive video conversations with an AI, simulating various real-world scenarios.
+
+### 5.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant AI as AI Video Service (Tavus AI)
+
+    U->>A: Selects 'Video Call Meeting Mode'
+    A->>A: Retrieves User's Preferred Language
+    A->>U: Displays List of Video Call Scenarios
+    U->>A: Selects a Scenario (e.g., 'Job Interview')
+    A->>AI: Initiates Video Call Session with Scenario Context
+    AI-->>A: Video Stream & Audio Stream (AI speaking)
+    A->>U: Displays AI Video & Plays AI Audio
+    U->>A: Speaks into Microphone
+    A->>AI: Sends User Audio for Processing
+    AI-->>A: Video Stream & Audio Stream (AI speaking)
+    A->>U: Displays AI Video & Plays AI Audio
+    loop Continuous Video Conversation
+        U->>A: Speaks into Microphone
+        A->>AI: Sends User Audio for Processing
+        AI-->>A: Video Stream & Audio Stream (AI speaking)
+        A->>U: Displays AI Video & Plays AI Audio
+    end
+```
+
+### 5.2. Flow Description
+
+1.  **Enter Video Call Meeting Mode:** The user selects the 'Video Call Meeting Mode' feature from the dashboard.
+2.  **Language Retrieval:** The application retrieves the user's preferred learning language to ensure the AI interaction is in the correct language.
+3.  **Scenario Selection:** The application presents a list of available video call scenarios (e.g., 'Interview', 'Chat with Friend', 'History Teacher').
+4.  **User Selects Scenario:** The user chooses a specific scenario for the video call.
+5.  **Initiate Video Call Session:** The application initiates a video call session with the Tavus AI service, providing the selected scenario's context. Tavus AI will then act as the chosen persona (e.g., interviewer, friend, history teacher).
+6.  **AI Video and Audio Stream:** Tavus AI begins streaming video and audio of the AI persona speaking, initiating the conversation based on the scenario.
+7.  **Display AI Video and Play AI Audio:** The application displays the AI's video feed and plays its audio, allowing the user to see and hear the AI.
+8.  **User Speaks:** The user speaks into their microphone, responding to the AI.
+9.  **User Audio Processing:** The user's audio is captured by the application and sent to the Tavus AI service for real-time processing.
+10. **AI Responds with Video and Audio:** Tavus AI processes the user's audio, generates a relevant response, and streams back new video and audio of the AI persona speaking.
+11. **Continuous Video Conversation:** This real-time loop continues, allowing for a dynamic and interactive video conversation with the AI, simulating a live meeting experience. The AI will maintain its persona and guide the conversation according to the chosen scenario.
+
+
+
+
+## 6. Profile Management Flow (Language Change)
+
+This section details the process by which a user can change their preferred learning language via the profile page, and how this change dynamically updates the application interface.
+
+### 6.1. Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as Application
+    participant DB as Database
+
+    U->>A: Navigates to Profile Page
+    A->>U: Displays Profile Page with Current Language Setting
+    U->>A: Clicks on Language Change Option
+    A->>U: Displays Language Selection Dropdown/Options
+    U->>A: Selects New Language (e.g., English)
+    A->>DB: Updates User Preferred Language
+    DB-->>A: Confirmation of Update
+    A->>U: Displays Confirmation Message (Optional)
+    A->>U: Reloads/Refreshes Application Interface (in new language)
+```
+
+### 6.2. Flow Description
+
+1.  **Navigate to Profile Page:** The user accesses their profile page from the Fluentzy dashboard or navigation menu.
+2.  **Display Current Language Setting:** The profile page loads, showing the user their current preferred learning language setting.
+3.  **Initiate Language Change:** The user clicks on an option or button to change their language preference.
+4.  **Display Language Options:** A dropdown menu or a list of available languages is presented to the user.
+5.  **Select New Language:** The user selects a new language (e.g., English) from the provided options.
+6.  **Update Database:** The application sends a request to the backend to update the user's `preferred_language` field in the database.
+7.  **Database Confirmation:** The database confirms the successful update of the user's language preference.
+8.  **Confirmation Message (Optional):** The application may display a brief confirmation message to the user indicating that their language preference has been updated.
+9.  **Reload/Refresh Application Interface:** The application then reloads or refreshes its interface. This action triggers the dynamic language rendering, causing all UI elements, feature descriptions, and content to immediately switch to the newly selected language. This ensures a consistent and immersive experience in the user's chosen learning language.
+
+
+
