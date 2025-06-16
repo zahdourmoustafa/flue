@@ -5,7 +5,9 @@ import {
   text,
   timestamp,
   boolean,
+  pgEnum,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -30,6 +32,57 @@ export const user = pgTable("user", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+export const userRelations = relations(user, ({ many }) => ({
+  conversations: many(conversations),
+}));
+
+export const conversations = pgTable("conversations", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const conversationRelations = relations(
+  conversations,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [conversations.userId],
+      references: [user.id],
+    }),
+    messages: many(messages),
+  })
+);
+
+export const senderTypeEnum = pgEnum("sender_type", ["user", "ai"]);
+
+export const messages = pgTable("messages", {
+  id: text("id").primaryKey(),
+  conversationId: text("conversation_id")
+    .notNull()
+    .references(() => conversations.id, { onDelete: "cascade" }),
+  senderType: senderTypeEnum("sender_type").notNull(),
+  originalMessage: text("original_message").notNull(),
+  correctedMessage: text("corrected_message"),
+  explanation: text("explanation"),
+  audioUrl: text("audio_url"),
+  hasErrors: boolean("has_errors").default(false),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const messageRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+}));
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),

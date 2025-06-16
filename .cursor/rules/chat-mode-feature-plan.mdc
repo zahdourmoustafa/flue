@@ -1,0 +1,400 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Chat Mode Feature Plan - Fluentzy MVP
+
+## 1. Overview
+
+The Chat Mode is a core feature of Fluentzy that provides users with an interactive, WhatsApp-style conversation experience with an AI language teacher named Emma. This feature focuses on real-time language practice with immediate error correction, voice synthesis, and detailed feedback mechanisms to enhance the learning experience.
+
+## 2. Feature Goals
+
+- **Conversational Practice**: Provide a natural, chat-like environment for users to practice their target language
+- **Real-time Error Detection**: Identify and highlight grammatical, spelling, and structural mistakes in user input
+- **Immediate Audio Feedback**: Generate and play AI responses with natural voice synthesis
+- **Educational Corrections**: Offer detailed explanations for language mistakes to facilitate learning
+- **Persistent Conversations**: Maintain chat history for continued learning sessions
+- **Topic Guidance**: Provide conversation starters and topic suggestions to guide discussions
+
+## 3. User Interface Design
+
+### 3.1. Main Chat Interface
+
+**Layout Structure:**
+- **Left Sidebar**: Navigation menu with different modes (Dashboard, Explore, Progress, Chat, Dialogue Mode, etc.)
+- **Header**: "Chat" title with back arrow, Emma's profile (avatar + name), audio control icon, and menu (three dots)
+- **Main Chat Area**: Message display area with AI and user messages
+- **Input Section**: Text input field with microphone icon and send functionality
+- **Topic Suggestions**: Floating suggestion pills ("Divertido", "Interesante", "Tú decides") for conversation starters
+
+**Visual Elements:**
+- **Primary Color**: Light blue (#3B82F6) for active elements and branding
+- **AI Avatar**: Circular profile image for Emma with online indicator
+- **Message Bubbles**: Distinct styling for AI (left-aligned, gray background) and user messages (right-aligned, blue background)
+- **Clean Typography**: Clear, readable fonts following the established design system
+
+### 3.2. Message Display System
+
+**AI Messages:**
+- Left-aligned message bubbles with Emma's avatar
+- Include "Repeat" and "Translate" buttons below each message
+- Text content displays simultaneously with audio playback
+- Timestamp and delivery status indicators
+
+**User Messages:**
+- Right-aligned message bubbles in primary blue color
+- **Error Indicator**: Orange warning icon appears when mistakes are detected
+- **Original Text Display**: Shows user's exact input
+- **Interactive Correction**: Clicking orange icon opens feedback panel
+
+### 3.3. Error Correction System
+
+**Visual Indicators:**
+- **Orange Warning Icon**: Appears next to user messages containing errors
+- **Subtle Highlighting**: Non-intrusive visual cue for mistake detection
+- **Clickable Interface**: Icon responds to hover/click states
+
+**Feedback Panel:**
+- **Slide-out Panel**: Opens from right side when correction icon is clicked
+- **Three-Section Layout**:
+  1. **"Your message"**: Displays original user input exactly as typed
+  2. **"Corrected message"**: Shows the grammatically correct version
+  3. **"Explanation"**: Detailed breakdown of mistakes and corrections
+- **Advanced Feedback Button**: Option for deeper linguistic analysis
+- **Close Button**: X button to dismiss the feedback panel
+
+### 3.4. Conversation Starters
+
+**Topic Suggestion Pills:**
+- **Floating Buttons**: Positioned prominently in the chat area
+- **Dynamic Content**: Suggestions based on user's learning level and preferences
+- **Examples**: "Divertido" (Fun), "Interesante" (Interesting), "Tú decides" (You decide)
+- **Interactive**: Clicking sends the topic to AI to initiate themed conversation
+
+## 4. Functional Specifications
+
+### 4.1. AI Conversation Flow
+
+**Initialization:**
+1. User enters Chat Mode
+2. System retrieves user's preferred learning language from profile
+3. AI (Emma) automatically generates and displays welcome message in target language
+4. Audio synthesis begins immediately for AI message
+5. Topic suggestion pills appear for user guidance
+
+**Conversation Cycle:**
+1. **AI Response Generation**: OpenAI generates contextually appropriate responses
+2. **Voice Synthesis**: ElevenLabs converts AI text to natural speech
+3. **Simultaneous Display**: Text appears with concurrent audio playback
+4. **User Input Processing**: Real-time analysis of user's typed response
+5. **Error Detection**: Immediate grammatical and spelling analysis
+6. **Feedback Preparation**: Correction and explanation generation for mistakes
+
+### 4.2. Error Detection and Correction
+
+**Real-time Analysis:**
+- **Input Processing**: User message analyzed by OpenAI for linguistic accuracy
+- **Mistake Categories**:
+  - Spelling errors ("cono" → "cómo")
+  - Grammar mistakes (missing question marks, accent marks)
+  - Capitalization errors ("hola" → "Hola")
+  - Punctuation issues (missing commas, question marks)
+  - Vocabulary usage (inappropriate word choices)
+
+**Feedback Generation:**
+- **Corrected Version**: Grammatically perfect version of user's message
+- **Detailed Explanation**: Breakdown of each mistake with linguistic reasoning
+- **Educational Context**: Teaching-focused explanations for language rules
+- **Progressive Difficulty**: Explanations adapted to user's proficiency level
+
+### 4.3. Audio System
+
+**Voice Generation:**
+- **Real-time Synthesis**: ElevenLabs API integration for natural speech
+- **Language-specific Voices**: Native speaker voices for target language
+- **Playback Controls**: 
+  - Automatic playback when AI message appears
+  - "Repeat" button for message replay
+  - Audio progress indicators during playback
+
+**Audio Features:**
+- **Natural Pronunciation**: High-quality, accent-appropriate voice synthesis
+- **Speed Control**: Adjustable playback speed for learning needs
+- **Visual Feedback**: Speaking indicators and waveform animations
+- **Queue Management**: Proper handling of multiple audio requests
+
+### 4.4. Session Management
+
+**Conversation Persistence:**
+- **Auto-save**: Real-time saving of conversation history
+- **Session Continuity**: Users can leave and return to conversations
+- **History Access**: Previous conversations remain accessible
+- **Data Retention**: Conversations stored for learning progress tracking
+
+**Exit Handling:**
+- **Confirmation Dialog**: "Are you sure you want to leave the chat?" prompt
+- **Data Preservation**: "Your conversation will not be lost. You can come back to it later."
+- **Clean Exit**: Proper session cleanup and state preservation
+
+## 5. Technical Implementation
+
+### 5.1. Frontend Components (Next.js + ShadCN)
+
+**Core Components:**
+```
+/components/chat/
+├── ChatInterface.tsx          # Main chat container
+├── MessageBubble.tsx         # Individual message display
+├── ErrorFeedbackPanel.tsx    # Correction feedback sidebar
+├── TopicSuggestions.tsx      # Conversation starter pills
+├── AudioControls.tsx         # Voice playback management
+├── ChatInput.tsx            # Text input with validation
+└── ChatHeader.tsx           # Header with Emma profile
+```
+
+**State Management:**
+- **Chat State**: Active conversation, message history, session ID
+- **Audio State**: Current playback, queue management, loading states
+- **Feedback State**: Error detection, correction display, panel visibility
+- **User State**: Preferred language, learning level, conversation preferences
+
+### 5.2. API Integration
+
+**Backend Endpoints:**
+- **POST /api/chat/start**: Initialize new chat session
+- **POST /api/chat/message**: Send user message, receive AI response with corrections
+- **GET /api/chat/history/:sessionId**: Retrieve conversation history
+- **POST /api/chat/audio**: Generate voice synthesis for AI responses
+- **PUT /api/chat/session**: Update session metadata and preferences
+
+**External Services:**
+- **OpenAI API**: 
+  - Conversation generation
+  - Error detection and correction
+  - Explanation generation
+- **ElevenLabs API**:
+  - Text-to-speech synthesis
+  - Voice cloning for Emma persona
+  - Real-time audio generation
+
+### 5.3. Database Schema
+
+**Chat Sessions Table:**
+```sql
+chat_sessions (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    language VARCHAR(10) NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+)
+```
+
+**Chat Messages Table:**
+```sql
+chat_messages (
+    id UUID PRIMARY KEY,
+    session_id UUID REFERENCES chat_sessions(id),
+    sender_type VARCHAR(10) NOT NULL, -- 'ai' or 'user'
+    original_message TEXT,
+    corrected_message TEXT,
+    correction_explanation TEXT,
+    audio_url VARCHAR(500),
+    has_errors BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+)
+```
+
+## 6. User Experience Flow
+
+### 6.1. Conversation Initiation
+
+1. **Entry**: User clicks "Chat" from sidebar navigation
+2. **Loading**: System retrieves user preferences and initializes AI
+3. **Welcome**: Emma displays greeting message in user's target language
+4. **Audio**: Automatic voice playback of AI greeting
+5. **Guidance**: Topic suggestion pills appear for conversation direction
+6. **Ready State**: Input field becomes active for user interaction
+
+### 6.2. Message Exchange Cycle
+
+1. **User Input**: User types message in text input field
+2. **Send Action**: Message submitted via Enter key or send button
+3. **Display**: User message appears in chat bubble (right-aligned)
+4. **Processing**: Backend analyzes message for errors and generates AI response
+5. **Error Detection**: If mistakes found, orange warning icon appears
+6. **AI Response**: Emma's response appears with simultaneous audio playback
+7. **Interaction**: User can repeat audio, view corrections, or continue conversation
+
+### 6.3. Error Correction Workflow
+
+1. **Mistake Detection**: Orange icon appears next to user message with errors
+2. **User Interaction**: User clicks orange warning icon
+3. **Panel Open**: Feedback panel slides in from right side
+4. **Content Display**:
+   - Original message shown exactly as typed
+   - Corrected version displayed below
+   - Detailed explanation of each mistake
+5. **Learning**: User reviews corrections and explanations
+6. **Dismissal**: User closes panel to continue conversation
+7. **Progress**: System tracks correction patterns for future learning
+
+### 6.4. Session Management
+
+**Active Session:**
+- Continuous conversation flow
+- Real-time error detection and feedback
+- Audio playback and controls
+- Topic suggestion updates
+
+**Session Exit:**
+- Back button or navigation away triggers confirmation
+- "Leave Chat" dialog with preservation assurance
+- Clean session suspension
+- Return capability maintained
+
+**Session Return:**
+- Immediate access to previous conversation
+- Context preservation
+- Continued AI persona consistency
+- Historical error patterns available
+
+## 7. Accessibility and Localization
+
+### 7.1. Accessibility Features
+
+**Keyboard Navigation:**
+- Full keyboard accessibility for all chat functions
+- Tab order optimized for conversation flow
+- Escape key closes feedback panels
+- Enter key sends messages
+
+**Screen Reader Support:**
+- ARIA labels for all interactive elements
+- Semantic HTML structure for message flow
+- Audio playback announcements
+- Error correction explanations readable by screen readers
+
+**Visual Accessibility:**
+- High contrast ratios for all text elements
+- Clear visual hierarchy in feedback panels
+- Error indicators with multiple visual cues (color + icon)
+- Scalable typography for various viewing needs
+
+### 7.2. Dynamic Language Support
+
+**Interface Adaptation:**
+- All UI elements translate to user's learning language
+- Emma's persona adapts to target language culture
+- Topic suggestions localized for regional relevance
+- Error explanations use appropriate linguistic terminology
+
+**Content Localization:**
+- Conversation starters culturally appropriate
+- AI responses reflect native speaker patterns
+- Correction explanations use familiar grammatical terms
+- Voice synthesis matches regional accents and pronunciation
+
+## 8. Performance Requirements
+
+### 8.1. Response Times
+
+- **Message Send to AI Response**: < 3 seconds
+- **Audio Generation**: < 2 seconds
+- **Error Detection**: < 1 second
+- **Feedback Panel Load**: < 500ms
+- **Session Initialization**: < 2 seconds
+
+### 8.2. Real-time Features
+
+- **Typing Indicators**: Show when AI is generating response
+- **Audio Streaming**: Progressive audio loading for large responses
+- **Message Delivery**: Immediate visual feedback for sent messages
+- **Connection Status**: Clear indicators for network issues
+
+### 8.3. Offline Capabilities
+
+- **Message Queuing**: Store messages when connection lost
+- **History Access**: Previous conversations available offline
+- **Graceful Degradation**: Core functionality maintained with limited connectivity
+- **Sync Recovery**: Automatic synchronization when connection restored
+
+## 9. Quality Assurance
+
+### 9.1. Testing Scenarios
+
+**Functional Testing:**
+- Message send/receive accuracy
+- Error detection precision
+- Audio generation quality
+- Feedback panel functionality
+- Session persistence verification
+
+**Cross-platform Testing:**
+- Desktop browsers (Chrome, Firefox, Safari, Edge)
+- Mobile responsive design
+- Touch interaction optimization
+- Voice playback across devices
+
+**Language Testing:**
+- Accuracy of error detection across languages
+- Cultural appropriateness of AI responses
+- Voice synthesis quality for target languages
+- Localization completeness
+
+### 9.2. Performance Testing
+
+- Load testing for concurrent chat sessions
+- Audio streaming performance under various network conditions
+- Real-time response latency measurement
+- Memory usage optimization for long conversations
+
+## 10. Success Metrics
+
+### 10.1. User Engagement
+
+- **Session Duration**: Average time spent in chat sessions
+- **Message Count**: Number of messages exchanged per session
+- **Return Rate**: Frequency of users returning to previous conversations
+- **Feature Usage**: Adoption rate of correction feedback panels
+
+### 10.2. Learning Effectiveness
+
+- **Error Reduction**: Improvement in accuracy over time
+- **Correction Interaction**: Rate of users engaging with error feedback
+- **Topic Engagement**: Usage patterns of conversation starters
+- **Audio Utilization**: Frequency of audio replay usage
+
+### 10.3. Technical Performance
+
+- **Response Time**: API response latency metrics
+- **Audio Quality**: Voice synthesis clarity and naturalness ratings
+- **Error Rate**: System error frequency and resolution times
+- **Session Reliability**: Successful session completion rates
+
+## 11. Future Enhancements
+
+### 11.1. Advanced Features
+
+- **Voice Input**: Speech-to-text for verbal responses
+- **Conversation Themes**: Structured learning paths within chat
+- **Progress Visualization**: Real-time learning progress indicators
+- **Social Features**: Sharing conversation highlights
+
+### 11.2. AI Improvements
+
+- **Personalized Correction**: Error feedback adapted to individual learning patterns
+- **Contextual Responses**: AI responses based on user's learning history
+- **Advanced Grammar**: Complex linguistic pattern recognition
+- **Cultural Coaching**: Contextual cultural etiquette guidance
+
+### 11.3. Integration Opportunities
+
+- **Calendar Integration**: Scheduled practice sessions
+- **Progress Tracking**: Integration with overall learning analytics
+- **Gamification**: Achievement systems for conversation milestones
+- **Community Features**: Shared conversation experiences
+
