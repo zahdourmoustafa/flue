@@ -1,0 +1,246 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Fluentzy MVP Frontend Guidelines
+
+## 1. Overview
+
+This document establishes the frontend design guidelines for the Fluentzy MVP, ensuring a cohesive, engaging, and user-friendly interface that aligns with the application's educational goals. The guidelines draw inspiration from successful language learning platforms like Duolingo and Talkpal while establishing Fluentzy's unique visual identity centered around a light blue primary color scheme.
+
+## 2. Color Palette
+
+The color palette for Fluentzy is carefully designed to create a calming, trustworthy, and engaging learning environment that promotes focus and reduces anxiety often associated with language learning.
+
+### 2.1. Primary Colors
+
+*   **Primary Blue (#3B82F6):** This light blue serves as the main brand color, used for primary buttons, links, and key interactive elements. This color conveys trust, reliability, and intelligence, making it ideal for an educational platform.
+*   **Primary Blue Hover (#2563EB):** A slightly darker shade used for hover states on primary elements.
+*   **Primary Blue Light (#DBEAFE):** A very light tint used for backgrounds, subtle highlights, and secondary elements.
+
+### 2.2. Secondary Colors
+
+*   **Success Green (#10B981):** Used for positive feedback, correct answers, and completion states.
+*   **Warning Orange (#F59E0B):** Used for caution states, pending actions, and attention-grabbing elements.
+*   **Error Red (#EF4444):** Used for error states, incorrect answers, and critical alerts.
+*   **Neutral Gray (#6B7280):** Used for secondary text, borders, and inactive elements.
+
+### 2.3. Background Colors
+
+*   **Background White (#FFFFFF):** Primary background color for main content areas.
+*   **Background Gray (#F9FAFB):** Light gray background for secondary areas and subtle section divisions.
+*   **Background Blue (#F0F9FF):** Very light blue background for special sections and highlighted content areas.
+
+### 2.4. Text Colors
+
+*   **Text Primary (#111827):** Main text color for headings and primary content.
+*   **Text Secondary (#6B7280):** Secondary text color for descriptions and less important information.
+*   **Text Muted (#9CA3AF):** Muted text color for placeholders and disabled states.
+
+
+
+## 3. Typography
+
+Typography plays a crucial role in creating a readable, accessible, and engaging user experience. The typography system for Fluentzy emphasizes clarity and hierarchy while maintaining a friendly and approachable tone.
+
+### 3.1. Font Family
+
+*   **Primary Font:** Inter - A modern, highly legible sans-serif font that works well across all screen sizes and languages. Inter is specifically designed for user interfaces and provides excellent readability for both Latin and non-Latin scripts.
+*   **Fallback Fonts:** system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
+
+### 3.2. Font Weights
+
+*   **Light (300):** Used sparingly for large decorative text or special emphasis.
+*   **Regular (400):** Standard weight for body text and general content.
+*   **Medium (500):** Used for subheadings and emphasized text within paragraphs.
+*   **Semibold (600):** Used for section headings and important labels.
+*   **Bold (700):** Used for main headings and critical information.
+
+### 3.3. Font Sizes and Line Heights
+
+*   **Heading 1:** 2.25rem (36px) / Line height: 2.5rem (40px) - Used for page titles and main headings.
+*   **Heading 2:** 1.875rem (30px) / Line height: 2.25rem (36px) - Used for section headings.
+*   **Heading 3:** 1.5rem (24px) / Line height: 2rem (32px) - Used for subsection headings.
+*   **Heading 4:** 1.25rem (20px) / Line height: 1.75rem (28px) - Used for component headings.
+*   **Body Large:** 1.125rem (18px) / Line height: 1.75rem (28px) - Used for important body text.
+*   **Body Regular:** 1rem (16px) / Line height: 1.5rem (24px) - Standard body text size.
+*   **Body Small:** 0.875rem (14px) / Line height: 1.25rem (20px) - Used for captions and secondary information.
+*   **Caption:** 0.75rem (12px) / Line height: 1rem (16px) - Used for fine print and metadata.
+
+### 3.4. Typography Hierarchy
+
+The typography hierarchy ensures clear information architecture and guides users through the content effectively. Headings should be used consistently to create a logical flow of information, with appropriate spacing between different levels of content.
+
+
+
+## 4. Component Style Guidelines (ShadCN Based)
+
+Fluentzy leverages ShadCN UI components as the foundation for its design system, ensuring consistency, accessibility, and maintainability across the application. These guidelines outline how to customize and extend ShadCN components to match Fluentzy's unique aesthetic.
+
+### 4.1. Button Components
+
+Buttons are critical interactive elements that guide user actions throughout the application. The button system follows a clear hierarchy and provides appropriate visual feedback.
+
+*   **Primary Buttons:** Use the primary blue color (#3B82F6) with white text. These buttons are used for main actions like "Start Chat," "Begin Dialogue," or "Join Video Call."
+*   **Secondary Buttons:** Use a white background with primary blue border and text. These are used for secondary actions like "Cancel" or "Skip."
+*   **Destructive Buttons:** Use error red (#EF4444) for actions that might have negative consequences, such as "Delete" or "Reset Progress."
+*   **Ghost Buttons:** Transparent background with colored text, used for tertiary actions and navigation elements.
+
+Button states include hover, active, focus, and disabled states, each with appropriate visual feedback including subtle animations and color transitions.
+
+### 4.2. Input Components
+
+Input fields are essential for user interaction, particularly in chat modes where users type their responses. The input system prioritizes clarity and provides clear feedback for validation states.
+
+*   **Text Inputs:** Clean, rounded borders with focus states that highlight in primary blue. Include proper placeholder text and clear labeling.
+*   **Textarea Components:** Used for longer text input in chat modes, with auto-resize functionality and character count indicators when appropriate.
+*   **Select Dropdowns:** Used for language selection and scenario choices, with clear visual hierarchy and search functionality for longer lists.
+
+### 4.3. Card Components
+
+Cards serve as containers for different content sections and features, providing clear visual separation and organization.
+
+*   **Feature Cards:** Used on the dashboard to represent different modes (Chat, Dialogue, Video Call). Include icons, titles, descriptions, and clear call-to-action buttons.
+*   **Chat Message Cards:** Specialized cards for displaying AI and user messages in chat modes, with distinct styling for each type of message.
+*   **Progress Cards:** Used to display user progress, achievements, and learning statistics.
+
+### 4.4. Navigation Components
+
+Navigation elements ensure users can easily move through the application and understand their current location.
+
+*   **Top Navigation:** Clean header with logo, main navigation links, and user profile access.
+*   **Sidebar Navigation:** Used for feature selection and quick access to different modes.
+*   **Breadcrumbs:** Implemented for deeper navigation levels to help users understand their location within the application.
+
+### 4.5. Modal and Dialog Components
+
+Modals and dialogs are used for focused interactions and important information that requires user attention.
+
+*   **Confirmation Dialogs:** Used for important actions like language changes or account settings.
+*   **Information Modals:** Used for onboarding, tutorials, and help content.
+*   **Full-Screen Modals:** Used for immersive experiences like video call setup.
+
+
+## 5. Layout Principles
+
+The layout system for Fluentzy emphasizes clarity, accessibility, and responsive design to ensure an optimal experience across all devices and screen sizes.
+
+### 5.1. Grid System
+
+Fluentzy uses a flexible grid system based on CSS Grid and Flexbox, providing consistent spacing and alignment throughout the application.
+
+*   **Container Widths:** Maximum content width of 1200px for desktop, with appropriate padding on smaller screens.
+*   **Grid Columns:** 12-column grid system for complex layouts, with the ability to use simpler column arrangements for specific components.
+*   **Spacing Scale:** Consistent spacing scale using multiples of 4px (4, 8, 12, 16, 24, 32, 48, 64, 96px) for margins, padding, and gaps.
+
+### 5.2. Responsive Design
+
+The application follows a mobile-first approach, ensuring excellent usability on all device types.
+
+*   **Breakpoints:**
+    *   Mobile: 0px - 640px
+    *   Tablet: 641px - 1024px
+    *   Desktop: 1025px and above
+*   **Responsive Behavior:** Components adapt gracefully across breakpoints, with appropriate font size adjustments, spacing modifications, and layout reorganization.
+*   **Touch-Friendly Design:** All interactive elements meet minimum touch target sizes (44px) for mobile devices.
+
+### 5.3. Page Layouts
+
+Different page types follow consistent layout patterns while accommodating their specific functional requirements.
+
+*   **Dashboard Layout:** Central content area with feature cards arranged in a responsive grid, sidebar navigation for quick access to different modes.
+*   **Chat/Dialogue Layout:** Full-height layout with message area, input section, and minimal navigation to maintain focus on conversation.
+*   **Video Call Layout:** Full-screen layout optimized for video interaction with minimal UI elements to avoid distraction.
+*   **Profile Layout:** Standard form layout with clear sections for different settings and preferences.
+
+### 5.4. Content Hierarchy
+
+Visual hierarchy guides users through content and functionality effectively.
+
+*   **Primary Content:** Main feature areas and active conversations receive the most visual prominence.
+*   **Secondary Content:** Supporting information and navigation elements use subtle styling to avoid competing with primary content.
+*   **Tertiary Content:** Metadata, timestamps, and auxiliary information use muted colors and smaller text sizes.
+
+
+## 6. Interaction Design
+
+Interaction design focuses on creating engaging, intuitive, and responsive user experiences that enhance the language learning process.
+
+### 6.1. Animation and Transitions
+
+Thoughtful animations and transitions provide visual feedback and create a polished, professional experience.
+
+*   **Micro-interactions:** Subtle hover effects, button press feedback, and loading states that provide immediate visual response to user actions.
+*   **Page Transitions:** Smooth transitions between different sections and modes to maintain context and reduce cognitive load.
+*   **Loading States:** Engaging loading animations for AI responses, voice generation, and video call connections that keep users informed about system status.
+*   **Success Animations:** Celebratory animations for completed lessons, correct answers, or achieved milestones to reinforce positive learning experiences.
+
+### 6.2. Feedback Systems
+
+Clear feedback mechanisms help users understand system responses and their own progress.
+
+*   **Real-time Correction Feedback:** Visual highlighting of corrected text with smooth transitions and clear before/after states.
+*   **Voice Playback Indicators:** Visual cues showing when AI voice is playing, with waveform animations or speaking indicators.
+*   **Typing Indicators:** Show when AI is generating responses to maintain engagement during processing times.
+*   **Progress Indicators:** Clear visual representation of lesson progress, conversation length, and learning achievements.
+
+### 6.3. Accessibility Considerations
+
+Accessibility is integrated into all interaction design decisions to ensure the application is usable by learners with diverse needs.
+
+*   **Keyboard Navigation:** Full keyboard accessibility for all interactive elements, with clear focus indicators and logical tab order.
+*   **Screen Reader Support:** Proper ARIA labels, semantic HTML structure, and descriptive text for all interactive elements.
+*   **Color Contrast:** All text and interactive elements meet WCAG AA contrast requirements for readability.
+*   **Motion Preferences:** Respect user preferences for reduced motion and provide alternatives for animation-dependent feedback.
+
+### 6.4. Error Handling
+
+Error states are designed to be helpful and educational rather than frustrating.
+
+*   **Inline Validation:** Real-time feedback for form inputs with clear, actionable error messages.
+*   **Connection Issues:** Graceful handling of network problems with clear explanations and retry options.
+*   **AI Service Errors:** User-friendly messages when AI services are unavailable, with alternative actions when possible.
+*   **Recovery Guidance:** Clear instructions for resolving errors and continuing with the learning experience.
+
+
+## 7. Language Learning Specific Design Considerations
+
+Fluentzy's design must accommodate the unique requirements of language learning applications, including dynamic language switching and educational feedback systems.
+
+### 7.1. Dynamic Language Support
+
+The interface must seamlessly adapt to different languages while maintaining visual consistency and usability.
+
+*   **Text Expansion:** Design components that can accommodate varying text lengths across different languages, with appropriate spacing and layout adjustments.
+*   **Right-to-Left Support:** While not required for the MVP (English and Spanish), the design system should be prepared for future RTL language support.
+*   **Font Rendering:** Ensure proper font rendering for different character sets and diacritical marks common in various languages.
+*   **Cultural Sensitivity:** Color choices and imagery should be appropriate across different cultural contexts.
+
+### 7.2. Educational Feedback Design
+
+Visual design elements that support the learning process and provide clear educational feedback.
+
+*   **Correction Highlighting:** Clear visual distinction between original user text and AI corrections, using color coding and typography to show improvements.
+*   **Progress Visualization:** Intuitive progress indicators that motivate continued learning and show advancement over time.
+*   **Achievement Recognition:** Visual celebration of milestones and improvements that reinforce positive learning behaviors.
+*   **Difficulty Indicators:** Clear visual cues about lesson difficulty or conversation complexity to help users choose appropriate challenges.
+
+### 7.3. Conversation Interface Design
+
+Specialized design considerations for chat and dialogue modes that facilitate natural conversation flow.
+
+*   **Message Differentiation:** Clear visual distinction between user messages, AI messages, and system corrections.
+*   **Voice Playback Integration:** Seamless integration of voice playback controls with text messages, including visual indicators for audio status.
+*   **Conversation History:** Effective organization and display of conversation history that supports learning review and reference.
+*   **Input Assistance:** Helpful input features like auto-complete, spell-check integration, and formatting assistance.
+
+### 7.4. Video Call Interface Design
+
+Specialized design for video call mode that maximizes the educational value of face-to-face AI interaction.
+
+*   **Minimal UI Overlay:** Clean, unobtrusive interface elements that don't distract from the conversation experience.
+*   **Scenario Context:** Clear visual indicators of the current scenario and role-playing context.
+*   **Technical Status:** Unobtrusive indicators for connection quality, audio levels, and system status.
+*   **Quick Actions:** Easy access to essential functions like muting, ending calls, or switching scenarios without disrupting the conversation flow.
+
