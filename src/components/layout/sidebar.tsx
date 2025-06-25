@@ -24,14 +24,14 @@ const navigation = [
 ];
 
 const learningModes = [
-  { name: "Chat", href: "/chat", icon: MessageCircle },
-  { name: "Dialogue Mode", href: "/dialogue", icon: Mic },
-  { name: "Sentence Mode", href: "/sentence", icon: Play },
-  { name: "Call Mode", href: "/video-call", icon: Video },
-  { name: "Roleplays", href: "/roleplays", icon: Users },
-  { name: "Characters", href: "/characters", icon: User },
-  { name: "Debates", href: "/debates", icon: MessageCircle },
-  { name: "Photo Mode", href: "/photo", icon: Camera },
+  { name: "Chat", href: "/dashboard/chat", icon: MessageCircle },
+  { name: "Dialogue Mode", href: "/dashboard/dialogue", icon: Mic },
+  { name: "Sentence Mode", href: "/dashboard/sentence", icon: Play },
+  { name: "Call Mode", href: "/dashboard/video-call", icon: Video },
+  { name: "Roleplays", href: "/dashboard/roleplays", icon: Users },
+  { name: "Characters", href: "/dashboard/characters", icon: User },
+  { name: "Debates", href: "/dashboard/debates", icon: MessageCircle },
+  { name: "Photo Mode", href: "/dashboard/photo", icon: Camera },
 ];
 
 export function Sidebar() {

@@ -202,6 +202,27 @@ export class TextToSpeechService {
     // Fall back to regular TTS
     return this.speak(options);
   }
+
+  /**
+   * Generate audio as blob for external use (like D-ID integration)
+   */
+  async generateAudioBlob(options: TTSOptions): Promise<Blob> {
+    try {
+      console.log(
+        "🎵 Generating audio blob for:",
+        options.text.substring(0, 50) + "..."
+      );
+
+      const audioData = await this.generateSpeech(options);
+      const blob = new Blob([audioData], { type: "audio/wav" });
+
+      console.log("✅ Audio blob generated:", blob.size, "bytes");
+      return blob;
+    } catch (error) {
+      console.error("❌ Error generating audio blob:", error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { AppLayout } from "@/components/layout/app-layout";
 import { DashboardContent } from "@/components/dashboard/dashboard-content";
 
 export default function DashboardPage() {
@@ -21,11 +20,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <AppLayout>
-      <DashboardContent
-        userName={userData.userName}
-        userStats={userData.userStats}
-      />
-    </AppLayout>
+    <DashboardContent
+      userName={userData.userName}
+      userStats={userData.userStats}
+    />
   );
 }
