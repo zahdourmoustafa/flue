@@ -10,7 +10,7 @@ const learningModes = [
     title: "AI Chat",
     description:
       "Engage in natural conversations with our advanced AI teacher to improve your writing and reading skills.",
-    href: "/chat",
+    href: "/dashboard/chat",
     color: "from-amber-400 via-orange-400 to-yellow-500",
     icon: MessageCircle,
     tags: ["#Writing", "#Reading", "#Conversation"],
@@ -20,7 +20,7 @@ const learningModes = [
     title: "Voice Call",
     description:
       "Practice speaking with real-time voice conversations to boost your pronunciation and listening skills.",
-    href: "/video-call",
+    href: "/dashboard/videocall",
     color: "from-rose-400 via-pink-500 to-red-500",
     icon: Video,
     tags: ["#Speaking", "#Listening", "#Pronunciation"],
@@ -31,7 +31,7 @@ const learningModes = [
     title: "Sentence Builder",
     description:
       "Master grammar and sentence structure through interactive exercises and guided practice.",
-    href: "/sentence",
+    href: "/dashboard/sentence",
     color: "from-blue-400 via-blue-500 to-purple-600",
     icon: Play,
     tags: ["#Grammar", "#Structure", "#Practice"],
@@ -42,7 +42,7 @@ const learningModes = [
     title: "Dialogue Practice",
     description:
       "Learn practical conversations for real-world scenarios with pre-scripted dialogues.",
-    href: "/dialogue",
+    href: "/dashboard/dialogue",
     color: "from-emerald-400 via-green-500 to-teal-600",
     icon: Mic,
     tags: ["#Conversation", "#Real-world", "#Practice"],

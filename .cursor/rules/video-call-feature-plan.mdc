@@ -1,0 +1,534 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Video Call Live Meeting Feature Plan - Fluentzy MVP
+
+## 1. Overview
+
+The Video Call Live Meeting feature provides real-time, face-to-face conversations with AI language teachers using Tavus Conversational Video Interface (CVI). This feature creates immersive learning experiences through scenario-based role-playing with AI avatars, enabling users to practice speaking skills in realistic contexts.
+
+## 2. Technical Architecture
+
+### 2.1. Tavus Integration Components
+
+**API Integration:**
+- **Create Conversation API**: `/v2/conversations` - Creates live video sessions
+- **Conversation Management**: Get, list, and end conversations
+- **Persona Configuration**: Custom AI personalities for different scenarios
+- **Daily.co Integration**: WebRTC video calling infrastructure
+
+**Key Components:**
+- **Replica ID**: Visual/audio appearance of AI (from user's Tavus dashboard)
+- **Persona ID**: AI personality/behavior configuration (from user's Tavus dashboard)
+- **Conversation URL**: Daily.co URL for joining video calls
+- **Real-time Communication**: WebRTC for live video/audio streaming
+
+### 2.2. Frontend Architecture
+
+**Core Components Structure:**
+```
+/components/video-call/
+├── VideoCallProvider.tsx          # Context provider for video call state
+├── VideoCallInterface.tsx         # Main video call UI container
+├── VideoCallFrame.tsx            # Daily.co iframe wrapper
+├── VideoCallControls.tsx         # Call controls (mute, end, etc.)
+├── ScenarioSelector.tsx          # Pre-call scenario selection
+├── VideoCallStatus.tsx           # Connection status indicator
+├── ConversationSummary.tsx       # Post-call summary component
+└── hooks/
+    ├── useVideoCall.ts           # Main video call hook
+    ├── useTavusAPI.ts           # Tavus API integration hook
+    └── useCallEvents.ts         # Daily.co event handling
+```
+
+**State Management:**
+- Video call session state (idle, connecting, active, ended)
+- Conversation metadata (ID, URL, scenario details)
+- Connection status and quality indicators
+- Recording and transcript management
+
+### 2.3. Backend API Endpoints
+
+**Video Call Management:**
+```typescript
+// Create conversation with Tavus
+POST /api/video-call/create
+{
+  scenarioId: string,
+  userId: string,
+  language: string
+}
+
+// Get conversation status
+GET /api/video-call/status/:conversationId
+
+// End conversation
+POST /api/video-call/end/:conversationId
+
+// Get conversation history
+GET /api/video-call/history/:userId
+```
+
+**Integration Services:**
+- **TavusService**: Direct API communication with Tavus
+- **ConversationService**: Business logic for conversation management
+- **ScenarioService**: Scenario-to-persona mapping logic
+- **UserService**: User preferences and conversation history
+
+## 3. Feature Implementation Plan
+
+### 3.1. Phase 1: Core Video Call Infrastructure
+
+**Reusable Video Call Component:**
+1. **VideoCallProvider Context**
+   - Global state management for video calls
+   - API integration hooks
+   - Error handling and loading states
+
+2. **VideoCallInterface Component**
+   - Main container for video call UI
+   - Responsive design for desktop/mobile
+   - Integration with Daily.co iframe
+
+3. **Backend API Foundation**
+   - Tavus API service implementation
+   - Conversation CRUD operations
+   - Environment variable configuration
+
+**Key Features:**
+- Create and join video conversations
+- Real-time video/audio communication
+- Basic call controls (mute, camera, end call)
+- Connection status monitoring
+
+### 3.2. Phase 2: Scenario-Based Conversations
+
+**Scenario Configuration:**
+1. **Scenario-to-Persona Mapping**
+   - Database schema for scenarios
+   - Persona configuration per scenario type
+   - Dynamic context and greeting generation
+
+2. **Pre-Call Setup**
+   - Scenario selection interface
+   - User preparation instructions
+   - Preview of AI personality/role
+
+3. **Dynamic Conversation Context**
+   - Custom greetings per scenario
+   - Role-specific conversational context
+   - Language-adaptive prompts
+
+**Key Features:**
+- 12+ predefined scenarios (job interview, coffee shop, etc.)
+- AI adapts personality based on selected scenario
+- Custom greetings and conversation starters
+- Scenario-specific learning objectives
+
+### 3.3. Phase 3: Advanced Features
+
+**Enhanced Learning Features:**
+1. **Conversation Analytics**
+   - Speaking time analysis
+   - Language complexity metrics
+   - Improvement suggestions
+
+2. **Recording and Transcripts**
+   - Optional conversation recording
+   - Real-time transcription
+   - Post-call review materials
+
+3. **Progress Tracking**
+   - Speaking confidence metrics
+   - Scenario completion tracking
+   - Skill development analytics
+
+## 4. Technical Implementation Details
+
+### 4.1. Environment Configuration
+
+**Required Environment Variables:**
+```env
+# Tavus API Configuration
+TAVUS_API_KEY=your_tavus_api_key
+TAVUS_PERSONA_ID=p5317866
+TAVUS_REPLICA_ID=r79e1c033f
+TAVUS_API_BASE_URL=https://tavusapi.com/v2
+
+# Daily.co Configuration (auto-provided by Tavus)
+DAILY_API_KEY=auto_configured_by_tavus
+
+# Application Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+WEBHOOK_URL=https://your-app.com/api/webhooks/tavus
+```
+
+### 4.2. Tavus API Integration
+
+**Create Conversation Flow:**
+1. **API Request to Tavus**:
+   ```typescript
+   const response = await fetch('/v2/conversations', {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'x-api-key': process.env.TAVUS_API_KEY
+     },
+     body: JSON.stringify({
+       replica_id: process.env.TAVUS_REPLICA_ID,
+       persona_id: getPersonaForScenario(scenarioId),
+       conversation_name: `Language Practice - ${scenarioName}`,
+       conversational_context: generateScenarioContext(scenario),
+       custom_greeting: generateCustomGreeting(scenario, language),
+       properties: {
+         max_call_duration: 1800, // 30 minutes
+         enable_recording: true,
+         enable_closed_captions: true,
+         language: language,
+         participant_left_timeout: 60,
+         participant_absent_timeout: 300
+       }
+     })
+   });
+   ```
+
+2. **Response Handling**:
+   ```typescript
+   const conversationData = {
+     conversation_id: response.conversation_id,
+     conversation_url: response.conversation_url,
+     status: response.status,
+     created_at: response.created_at
+   };
+   ```
+
+### 4.3. Daily.co Integration
+
+**Video Frame Implementation:**
+```typescript
+// Initialize Daily.co call frame
+const callFrame = DailyIframe.createFrame(videoElement, {
+  showLeaveButton: true,
+  showFullscreenButton: true,
+  showLocalVideo: true,
+  showParticipantsBar: false
+});
+
+// Join conversation
+await callFrame.join({ url: conversationUrl });
+```
+
+**Event Handling:**
+```typescript
+callFrame.on('joined-meeting', () => {
+  setCallStatus('connected');
+});
+
+callFrame.on('participant-joined', (event) => {
+  if (event.participant.user_name === 'AI_Replica') {
+    setAIJoined(true);
+  }
+});
+
+callFrame.on('left-meeting', () => {
+  setCallStatus('ended');
+  handleCallEnd();
+});
+```
+
+## 5. Database Schema
+
+### 5.1. Video Call Tables
+
+**video_call_sessions Table:**
+```sql
+CREATE TABLE video_call_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id),
+    conversation_id VARCHAR(255) UNIQUE NOT NULL,
+    scenario_id VARCHAR(50) NOT NULL,
+    persona_id VARCHAR(50) NOT NULL,
+    replica_id VARCHAR(50) NOT NULL,
+    conversation_url TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'created',
+    language VARCHAR(10) NOT NULL,
+    duration_seconds INTEGER DEFAULT 0,
+    started_at TIMESTAMP WITH TIME ZONE,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**video_call_scenarios Table:**
+```sql
+CREATE TABLE video_call_scenarios (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    difficulty_level VARCHAR(20) NOT NULL,
+    estimated_duration INTEGER NOT NULL,
+    persona_config JSONB NOT NULL,
+    conversational_context TEXT NOT NULL,
+    custom_greeting_template TEXT NOT NULL,
+    skills JSONB NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 5.2. Conversation Analytics
+
+**conversation_analytics Table:**
+```sql
+CREATE TABLE conversation_analytics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES video_call_sessions(id),
+    user_speak_time_seconds INTEGER DEFAULT 0,
+    ai_speak_time_seconds INTEGER DEFAULT 0,
+    total_exchanges INTEGER DEFAULT 0,
+    conversation_quality_score INTEGER,
+    language_complexity_level VARCHAR(20),
+    key_topics JSONB,
+    transcript_summary TEXT,
+    improvement_suggestions JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+## 6. Scenario Configuration
+
+### 6.1. Scenario Definitions
+
+**Professional Scenarios:**
+```typescript
+const professionalScenarios = {
+  'job-interview': {
+    persona_config: {
+      system_prompt: "You are a professional hiring manager conducting a job interview. Be thorough but friendly, ask relevant questions about experience and skills.",
+      conversational_context: "This is a job interview for a mid-level position. The candidate is looking to demonstrate their qualifications.",
+      custom_greeting: "Hello! Thank you for coming in today. I'm excited to learn more about your background and experience."
+    }
+  },
+  'business-meeting': {
+    persona_config: {
+      system_prompt: "You are a business colleague in a professional meeting. Discuss project updates, collaborate on solutions, and provide constructive feedback.",
+      conversational_context: "This is a business meeting to discuss ongoing projects and upcoming deadlines.",
+      custom_greeting: "Good morning! Let's dive into today's agenda and see how we can move our projects forward."
+    }
+  }
+};
+```
+
+**Social Scenarios:**
+```typescript
+const socialScenarios = {
+  'coffee-shop': {
+    persona_config: {
+      system_prompt: "You are a friendly barista in a coffee shop. Take orders, make small talk, and create a welcoming atmosphere.",
+      conversational_context: "This is a casual coffee shop interaction where the customer wants to order drinks and perhaps chat.",
+      custom_greeting: "Welcome to our coffee shop! What can I get started for you today?"
+    }
+  },
+  'first-date': {
+    persona_config: {
+      system_prompt: "You are on a first date. Be charming, ask getting-to-know-you questions, and share interesting stories about yourself.",
+      conversational_context: "This is a first date scenario where two people are getting to know each other.",
+      custom_greeting: "Hi! It's so nice to finally meet you in person. How has your day been so far?"
+    }
+  }
+};
+```
+
+## 7. User Experience Flow
+
+### 7.1. Pre-Call Experience
+
+1. **Scenario Selection**
+   - User browses video call scenarios
+   - Previews AI personality and learning objectives
+   - Selects difficulty level and estimated duration
+
+2. **Call Preparation**
+   - Camera/microphone permissions
+   - Audio/video quality check
+   - Brief instructions about the scenario
+
+3. **AI Introduction**
+   - Custom greeting based on scenario
+   - AI explains its role and conversation goals
+   - Natural conversation begins
+
+### 7.2. During Call Experience
+
+1. **Real-time Interaction**
+   - Natural conversation with AI avatar
+   - Scenario-appropriate responses and behavior
+   - Dynamic adaptation to user's language level
+
+2. **Visual Feedback**
+   - Connection quality indicators
+   - Speaking time balance visualization
+   - Subtle prompts for natural conversation flow
+
+3. **Call Controls**
+   - Mute/unmute microphone
+   - Turn camera on/off
+   - End call functionality
+   - Emergency exit options
+
+### 7.3. Post-Call Experience
+
+1. **Conversation Summary**
+   - Duration and engagement metrics
+   - Key topics discussed
+   - Language improvement insights
+
+2. **Learning Analytics**
+   - Speaking confidence assessment
+   - Vocabulary usage analysis
+   - Suggestions for future practice
+
+3. **Progress Tracking**
+   - Scenario completion badges
+   - Skill development timeline
+   - Recommended next scenarios
+
+## 8. Performance and Optimization
+
+### 8.1. Video Quality Optimization
+
+**Adaptive Quality:**
+- Automatic quality adjustment based on connection
+- Bandwidth optimization for mobile users
+- Fallback to audio-only if needed
+
+**Latency Reduction:**
+- WebRTC optimization
+- Regional server selection
+- Network quality monitoring
+
+### 8.2. API Optimization
+
+**Efficient Resource Usage:**
+- Connection pooling for Tavus API
+- Caching of scenario configurations
+- Optimized conversation cleanup
+
+**Error Handling:**
+- Graceful degradation for API failures
+- Automatic retry mechanisms
+- User-friendly error messages
+
+## 9. Security and Privacy
+
+### 9.1. Data Protection
+
+**Conversation Privacy:**
+- Optional recording with explicit consent
+- Automatic transcript deletion after review period
+- Encrypted communication channels
+
+**User Safety:**
+- Content moderation for AI responses
+- Emergency exit mechanisms
+- Clear privacy policy disclosure
+
+### 9.2. API Security
+
+**Authentication:**
+- Secure API key management
+- User session validation
+- Rate limiting protection
+
+**Data Validation:**
+- Input sanitization for all user data
+- Webhook signature verification
+- SQL injection prevention
+
+## 10. Testing Strategy
+
+### 10.1. Component Testing
+
+**Unit Tests:**
+- Video call hook functionality
+- API integration services
+- Scenario configuration logic
+
+**Integration Tests:**
+- Tavus API communication
+- Daily.co iframe integration
+- Database operations
+
+### 10.2. User Experience Testing
+
+**Scenario Testing:**
+- All 12 scenarios functional
+- AI personality consistency
+- Conversation quality validation
+
+**Performance Testing:**
+- Video call latency measurement
+- Concurrent user capacity
+- Mobile device compatibility
+
+## 11. Monitoring and Analytics
+
+### 11.1. Call Quality Metrics
+
+**Technical Metrics:**
+- Connection success rate
+- Average call duration
+- Video/audio quality scores
+- Error rate tracking
+
+**Learning Metrics:**
+- User engagement levels
+- Scenario completion rates
+- Language improvement indicators
+- User satisfaction scores
+
+### 11.2. Business Intelligence
+
+**Usage Analytics:**
+- Most popular scenarios
+- Peak usage times
+- User retention rates
+- Feature adoption metrics
+
+**Performance Insights:**
+- API response times
+- System resource utilization
+- Cost per conversation
+- Scalability requirements
+
+## 12. Future Enhancements
+
+### 12.1. Advanced AI Features
+
+**Enhanced Personalization:**
+- AI adaptation to user's speaking style
+- Dynamic difficulty adjustment
+- Personalized conversation topics
+
+**Multi-modal Learning:**
+- Screen sharing for presentations
+- Document review scenarios
+- Interactive whiteboard sessions
+
+### 12.2. Platform Expansion
+
+**Mobile Applications:**
+- Native iOS/Android apps
+- Offline scenario preparation
+- Push notification reminders
+
+**Integration Features:**
+- Calendar scheduling for practice sessions
+- Learning management system integration
+- Social features for group conversations
+
+This comprehensive plan provides the foundation for implementing a robust, scalable video call feature that enhances language learning through immersive AI conversations.
