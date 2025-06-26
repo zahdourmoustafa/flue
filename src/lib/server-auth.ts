@@ -1,5 +1,8 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
+
+// Re-export auth for server components
+export { auth };
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";

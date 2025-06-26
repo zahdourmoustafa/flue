@@ -1,0 +1,464 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Sentence Mode Feature Plan
+
+## Overview
+Sentence Mode is a structured learning feature that helps users practice pronunciation through guided sentence repetition. Users progress through 10 units with 3 lessons each, practicing 10 sentences per lesson with AI-powered pronunciation feedback.
+
+## Feature Specifications
+
+### Core Structure
+- **Route**: `/dashboard/sentencemode`
+- **Units**: 10 total units (progressive difficulty)
+- **Lessons per Unit**: 3 lessons
+- **Sentences per Lesson**: 10 sentences
+- **Total Content**: 300 sentences across all units
+
+### User Flow
+1. **Unit Selection**: User sees overview with 10 units and progress
+2. **Lesson Selection**: User selects from 3 lessons within a unit
+3. **Sentence Practice**: 
+   - AI speaks sentence using Eleven Labs TTS
+   - User records their pronunciation
+   - AI provides pronunciation feedback with score
+   - User proceeds to next sentence
+4. **Progress Tracking**: Visual progress bars and completion status
+
+## Technical Implementation
+
+### Frontend Structure
+
+#### Pages
+```
+/src/app/dashboard/sentence-mode/
+├── page.tsx                     # Main sentence mode overview
+├── [unitId]/
+│   ├── page.tsx                # Unit overview with lessons
+│   └── [lessonId]/
+│       └── page.tsx            # Lesson practice interface
+```
+
+#### Components
+```
+/src/components/sentence-mode/
+├── index.ts
+├── sentence-mode-overview.tsx   # Main overview with units
+├── unit-overview.tsx           # Unit page with lessons
+├── sentence-practice.tsx       # Main practice interface
+├── pronunciation-panel.tsx     # Feedback panel with scores
+├── sentence-progress.tsx       # Progress tracking
+├── audio-controls.tsx          # Voice recording controls
+├── sentence-card.tsx          # Individual sentence display
+└── unit-card.tsx              # Unit selection card
+```
+
+### Data Structure
+
+#### Sentence Data Schema
+```typescript
+interface SentenceUnit {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  lessons: SentenceLesson[];
+}
+
+interface SentenceLesson {
+  id: string;
+  title: string;
+  description: string;
+  sentences: Sentence[];
+}
+
+interface Sentence {
+  id: string;
+  text: string;
+  translation: string;
+  difficulty: number;
+  audioUrl?: string; // Eleven Labs generated audio
+}
+
+interface UserProgress {
+  userId: string;
+  unitId: string;
+  lessonId: string;
+  sentenceId: string;
+  completed: boolean;
+  pronunciationScore?: number;
+  attempts: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Database Schema (Drizzle)
+
+```sql
+-- Sentence units table
+CREATE TABLE sentence_units (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  difficulty VARCHAR(20) NOT NULL,
+  order_index INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Sentence lessons table
+CREATE TABLE sentence_lessons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unit_id UUID REFERENCES sentence_units(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  order_index INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Sentences table
+CREATE TABLE sentences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lesson_id UUID REFERENCES sentence_lessons(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  translation TEXT NOT NULL,
+  difficulty INTEGER DEFAULT 1,
+  audio_url VARCHAR(255),
+  order_index INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- User sentence progress table
+CREATE TABLE user_sentence_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  unit_id UUID REFERENCES sentence_units(id) ON DELETE CASCADE,
+  lesson_id UUID REFERENCES sentence_lessons(id) ON DELETE CASCADE,
+  sentence_id UUID REFERENCES sentences(id) ON DELETE CASCADE,
+  completed BOOLEAN DEFAULT FALSE,
+  pronunciation_score INTEGER,
+  attempts INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, sentence_id)
+);
+```
+
+### API Endpoints
+
+#### GET /api/sentence-mode/units
+- Returns all units with progress for authenticated user
+
+#### GET /api/sentence-mode/units/[unitId]
+- Returns specific unit with lessons and progress
+
+#### GET /api/sentence-mode/lessons/[lessonId]
+- Returns lesson with all sentences
+
+#### POST /api/sentence-mode/progress
+- Updates user progress for a sentence
+- Body: `{ sentenceId, pronunciationScore, completed }`
+
+#### POST /api/sentence-mode/audio/generate
+- Generates audio for sentences using Eleven Labs
+- Body: `{ text, language }`
+
+### Content Structure
+
+#### Unit 1: Making Introductions (Beginner)
+
+**Lesson 1: Introducing Yourself**
+1. "Hello, my name is John."
+2. "I am from New York."
+3. "I am 25 years old."
+4. "Nice to meet you."
+5. "I work as a teacher."
+6. "I live in the city."
+7. "I speak English and Spanish."
+8. "I am a student."
+9. "I am learning French."
+10. "Thank you for your time."
+
+**Lesson 2: Introducing Someone Else**
+1. "This is my friend Sarah."
+2. "She is from Canada."
+3. "He works in marketing."
+4. "They are my colleagues."
+5. "She is very kind."
+6. "He speaks three languages."
+7. "They live near the park."
+8. "She is a doctor."
+9. "He is my brother."
+10. "They are visiting us today."
+
+**Lesson 3: Formal Introductions**
+1. "Allow me to introduce myself."
+2. "I would like to present Mr. Smith."
+3. "It is a pleasure to meet you."
+4. "May I introduce my colleague?"
+5. "I am delighted to make your acquaintance."
+6. "Please meet our new manager."
+7. "I have the honor to introduce our speaker."
+8. "Let me present our team leader."
+9. "I would like you to meet my supervisor."
+10. "It is my privilege to introduce our guest."
+
+#### Unit 2: In the City (Beginner-Intermediate)
+
+**Lesson 1: Using Public Transport**
+1. "Where is the nearest subway station?"
+2. "How much is a bus ticket?"
+3. "What time does the train arrive?"
+4. "Is this the right platform?"
+5. "Can you help me with directions?"
+6. "I need to buy a metro card."
+7. "Which line goes to downtown?"
+8. "How long does the journey take?"
+9. "Is there a direct route?"
+10. "Thank you for your assistance."
+
+**Lesson 2: Asking for Directions**
+1. "Excuse me, how do I get to the museum?"
+2. "Could you point me toward Main Street?"
+3. "Is the library far from here?"
+4. "Can you show me on the map?"
+5. "Which way is the shopping center?"
+6. "How many blocks is it?"
+7. "Should I turn left or right?"
+8. "Is it within walking distance?"
+9. "Can I take a taxi there?"
+10. "Thank you for the directions."
+
+**Lesson 3: Places in the City**
+1. "The hospital is on Fifth Avenue."
+2. "There is a pharmacy on the corner."
+3. "The post office closes at six."
+4. "The bank is across the street."
+5. "You can find restaurants downtown."
+6. "The park is perfect for walking."
+7. "The grocery store is very convenient."
+8. "There are many cafes in this area."
+9. "The cinema shows the latest movies."
+10. "The library has free internet access."
+
+#### Unit 3: Travel (Intermediate)
+
+**Lesson 1: At the Airport**
+1. "I need to check in for my flight."
+2. "Where is the departure gate?"
+3. "My flight has been delayed."
+4. "I would like a window seat."
+5. "How much luggage can I bring?"
+6. "Is there a shuttle to the hotel?"
+7. "What time is boarding?"
+8. "I need to declare these items."
+9. "Where can I exchange money?"
+10. "Thank you for flying with us."
+
+**Lesson 2: Hotel Reservations**
+1. "I have a reservation under Johnson."
+2. "I would like a room for two nights."
+3. "Is breakfast included?"
+4. "What time is check-out?"
+5. "Can I have a late check-out?"
+6. "Is there Wi-Fi in the rooms?"
+7. "Where is the fitness center?"
+8. "I need extra towels, please."
+9. "Can you call a taxi for me?"
+10. "The service here is excellent."
+
+**Lesson 3: Sightseeing**
+1. "What are the main attractions here?"
+2. "How much are the entrance fees?"
+3. "Are there guided tours available?"
+4. "What time does the museum open?"
+5. "Is photography allowed inside?"
+6. "Can you recommend a good restaurant?"
+7. "How do I get to the old town?"
+8. "Are there any festivals this week?"
+9. "What is the best time to visit?"
+10. "This place is absolutely beautiful."
+
+### Implementation Steps
+
+#### Phase 1: Core Infrastructure
+1. **Database Setup**
+   - Create migration files for sentence mode tables
+   - Seed database with initial content for Units 1-3
+   - Set up Drizzle schema definitions
+
+2. **API Endpoints**
+   - Implement CRUD operations for sentence management
+   - Create progress tracking endpoints
+   - Set up Eleven Labs integration for TTS
+
+#### Phase 2: Frontend Components
+1. **Base Components**
+   - Create sentence mode layout components
+   - Implement progress tracking UI
+   - Build audio recording controls
+
+2. **Practice Interface**
+   - Develop sentence practice component
+   - Create pronunciation feedback panel
+   - Implement navigation between sentences
+
+#### Phase 3: User Experience
+1. **Audio Integration**
+   - Connect Eleven Labs TTS for sentence playback
+   - Implement speech-to-text for pronunciation
+   - Add pronunciation scoring system
+
+2. **Progress System**
+   - Track user completion across units/lessons
+   - Implement visual progress indicators
+   - Add achievement/completion states
+
+#### Phase 4: Content Expansion
+1. **Remaining Units (4-10)**
+   - Create content for intermediate/advanced levels
+   - Add more complex sentence structures
+   - Include specialized vocabulary themes
+
+### UI/UX Design Requirements
+
+#### Main Overview Page (`/dashboard/sentencemode`)
+- Grid layout showing 10 units
+- Progress indicators for each unit
+- Color-coded difficulty levels
+- "Continue" button for current progress
+
+#### Unit Page (`/dashboard/sentencemode/[unitId]`)
+- Unit header with description
+- 3 lesson cards with preview content
+- Progress bar for unit completion
+- Navigation back to overview
+
+#### Practice Page (`/dashboard/sentencemode/[unitId]/[lessonId]`)
+- Clean, focused interface for sentence practice
+- Large text display for current sentence
+- Audio playback controls
+- Voice recording button
+- Progress indicator (1/10, 2/10, etc.)
+- Translation panel (collapsible)
+
+#### Pronunciation Feedback Panel
+- Overall pronunciation score (0-100)
+- Emoji-based quick feedback (😞 😐 😊 😄 🤩)
+- Color-coded word-level feedback
+- "Repeat" button for practice
+- "Next" button to continue
+
+### Technology Stack Integration
+
+#### Frontend
+- **Next.js 14**: App router for nested routing
+- **TypeScript**: Type safety for all components
+- **Tailwind CSS**: Styling and responsive design
+- **shadcn/ui**: UI component library
+- **Zustand**: State management for progress
+
+#### Backend
+- **Nest.js**: API endpoints and business logic
+- **Drizzle ORM**: Database operations
+- **PostgreSQL**: Data persistence
+- **Eleven Labs**: Text-to-speech generation
+- **Web Speech API**: Speech recognition
+
+#### Authentication
+- **Better Auth**: User session management
+- **Authorization**: Route protection for dashboard
+
+### Performance Considerations
+
+#### Audio Optimization
+- Pre-generate audio files for all sentences
+- Implement audio caching strategy
+- Use compressed audio formats (MP3/OGG)
+
+#### Progress Tracking
+- Batch progress updates to reduce API calls
+- Implement offline progress sync
+- Cache progress data in localStorage
+
+#### Content Loading
+- Lazy load lesson content
+- Prefetch next lesson data
+- Implement skeleton loading states
+
+### Testing Strategy
+
+#### Unit Tests
+- Component rendering and user interactions
+- Audio control functionality
+- Progress calculation logic
+- API endpoint responses
+
+#### Integration Tests
+- Complete sentence practice flow
+- Progress persistence across sessions
+- Audio playback and recording
+
+#### End-to-End Tests
+- Full user journey through a lesson
+- Cross-browser audio compatibility
+- Mobile responsiveness
+
+### Future Enhancements
+
+#### Advanced Features
+- Adaptive difficulty based on performance
+- AI-generated pronunciation tips
+- Social features (leaderboards, sharing)
+- Offline mode support
+
+#### Content Expansion
+- Custom sentence sets
+- Industry-specific vocabulary
+- Regional accent variations
+- Multi-language support
+
+#### Analytics
+- Detailed pronunciation analytics
+- Learning pattern insights
+- Performance trend tracking
+- Personalized recommendations
+
+### Migration Plan
+
+#### Data Migration
+- Create seed scripts for initial content
+- Import existing user progress if applicable
+- Set up content management interface
+
+#### Deployment Strategy
+- Feature flags for gradual rollout
+- A/B testing for UI variations
+- Performance monitoring setup
+- User feedback collection system
+
+## Success Metrics
+
+### User Engagement
+- Daily active users in sentence mode
+- Average session duration
+- Lesson completion rates
+- Return user percentage
+
+### Learning Outcomes
+- Pronunciation score improvements
+- Sentence completion rates
+- User progression through units
+- Time to complete lessons
+
+### Technical Performance
+- Audio loading times
+- Speech recognition accuracy
+- API response times
+- Error rates and user feedback
+
