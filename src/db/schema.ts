@@ -127,3 +127,131 @@ export const verification = pgTable("verification", {
     () => /* @__PURE__ */ new Date()
   ),
 });
+
+// Sentence Mode Tables
+export const difficultyEnum = pgEnum("difficulty", [
+  "beginner",
+  "intermediate",
+  "advanced",
+]);
+
+export const sentenceUnits = pgTable("sentence_units", {
+  id: text("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  difficulty: difficultyEnum("difficulty").notNull(),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const sentenceLessons = pgTable("sentence_lessons", {
+  id: text("id").primaryKey(),
+  unitId: text("unit_id")
+    .notNull()
+    .references(() => sentenceUnits.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const sentences = pgTable("sentences", {
+  id: text("id").primaryKey(),
+  lessonId: text("lesson_id")
+    .notNull()
+    .references(() => sentenceLessons.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  translation: text("translation").notNull(),
+  difficulty: integer("difficulty").default(1),
+  audioUrl: varchar("audio_url", { length: 255 }),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const userSentenceProgress = pgTable("user_sentence_progress", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  unitId: text("unit_id")
+    .notNull()
+    .references(() => sentenceUnits.id, { onDelete: "cascade" }),
+  lessonId: text("lesson_id")
+    .notNull()
+    .references(() => sentenceLessons.id, { onDelete: "cascade" }),
+  sentenceId: text("sentence_id")
+    .notNull()
+    .references(() => sentences.id, { onDelete: "cascade" }),
+  completed: boolean("completed").default(false),
+  pronunciationScore: integer("pronunciation_score"),
+  attempts: integer("attempts").default(0),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+// Relations for sentence mode
+export const sentenceUnitsRelations = relations(sentenceUnits, ({ many }) => ({
+  lessons: many(sentenceLessons),
+  userProgress: many(userSentenceProgress),
+}));
+
+export const sentenceLessonsRelations = relations(
+  sentenceLessons,
+  ({ one, many }) => ({
+    unit: one(sentenceUnits, {
+      fields: [sentenceLessons.unitId],
+      references: [sentenceUnits.id],
+    }),
+    sentences: many(sentences),
+    userProgress: many(userSentenceProgress),
+  })
+);
+
+export const sentencesRelations = relations(sentences, ({ one, many }) => ({
+  lesson: one(sentenceLessons, {
+    fields: [sentences.lessonId],
+    references: [sentenceLessons.id],
+  }),
+  userProgress: many(userSentenceProgress),
+}));
+
+export const userSentenceProgressRelations = relations(
+  userSentenceProgress,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [userSentenceProgress.userId],
+      references: [user.id],
+    }),
+    unit: one(sentenceUnits, {
+      fields: [userSentenceProgress.unitId],
+      references: [sentenceUnits.id],
+    }),
+    lesson: one(sentenceLessons, {
+      fields: [userSentenceProgress.lessonId],
+      references: [sentenceLessons.id],
+    }),
+    sentence: one(sentences, {
+      fields: [userSentenceProgress.sentenceId],
+      references: [sentences.id],
+    }),
+  })
+);

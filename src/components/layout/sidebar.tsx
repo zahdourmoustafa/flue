@@ -26,7 +26,7 @@ const navigation = [
 const learningModes = [
   { name: "Chat", href: "/dashboard/chat", icon: MessageCircle },
   { name: "Dialogue Mode", href: "/dashboard/dialogue", icon: Mic },
-  { name: "Sentence Mode", href: "/dashboard/sentence", icon: Play },
+  { name: "Sentence Mode", href: "/dashboard/sentence-mode", icon: Play },
   { name: "Call Mode", href: "/dashboard/video-call", icon: Video },
   { name: "Roleplays", href: "/dashboard/roleplays", icon: Users },
   { name: "Characters", href: "/dashboard/characters", icon: User },
@@ -82,7 +82,8 @@ export function Sidebar() {
                   href={item.href}
                   className={cn(
                     "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                    pathname === item.href
+                    pathname === item.href ||
+                      pathname.startsWith(item.href + "/")
                       ? "bg-blue-50 text-blue-700 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   )}
