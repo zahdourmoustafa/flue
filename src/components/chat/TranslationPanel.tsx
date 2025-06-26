@@ -12,6 +12,7 @@ interface TranslationPanelProps {
   message: Message | null;
   translation: string | null;
   isLoading: boolean;
+  learningLanguage?: string;
   onClose: () => void;
 }
 
@@ -20,9 +21,23 @@ export function TranslationPanel({
   message,
   translation,
   isLoading,
+  learningLanguage = "en",
   onClose,
 }: TranslationPanelProps) {
   const [copied, setCopied] = useState(false);
+
+  // Language mapping
+  const languageNames: Record<string, string> = {
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    de: "German",
+    it: "Italian",
+    pt: "Portuguese",
+  };
+
+  const learningLangName = languageNames[learningLanguage] || learningLanguage;
+  const translationLangName = learningLanguage === "en" ? "Spanish" : "English";
 
   const handleCopy = async () => {
     if (translation) {
@@ -78,7 +93,10 @@ export function TranslationPanel({
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">
                   Original Message (
-                  {message.senderType === "ai" ? "Spanish" : "Your Message"})
+                  {message.senderType === "ai"
+                    ? learningLangName
+                    : "Your Message"}
+                  )
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-800">
                   {message.originalMessage}
@@ -90,7 +108,10 @@ export function TranslationPanel({
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-700">
                     Translation (
-                    {message.senderType === "ai" ? "English" : "Spanish"})
+                    {message.senderType === "ai"
+                      ? translationLangName
+                      : learningLangName}
+                    )
                   </h3>
                   {translation && (
                     <Button

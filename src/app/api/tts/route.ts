@@ -7,7 +7,7 @@ const VOICE_CONFIG = {
     female: "EXAVITQu4vr4xnSDxMaL", // Sarah - soft, young female (American)
   },
   spanish: {
-    female: "EXAVITQu4vr4xnSDxMaL", // Sarah - using the same voice for consistency
+    female: "ajOR9IDAaubDK5qtLUqQ", // Mimi - Spanish female voice
   },
 };
 
@@ -54,37 +54,86 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate speech using ElevenLabs
-    const audioStream = await elevenlabs.textToSpeech.stream(voiceId, {
-      text,
-      modelId: "eleven_flash_v2_5", // Lowest latency model
-      outputFormat: "mp3_44100_128",
-      voiceSettings: {
-        stability: 0.5,
-        similarityBoost: 0.8,
-        style: 0.2,
-        useSpeakerBoost: true,
-        speed: 1.0,
-      },
-    });
+    try {
+      const audioStream = await elevenlabs.textToSpeech.stream(voiceId, {
+        text,
+        modelId: "eleven_flash_v2_5", // Lowest latency model
+        outputFormat: "mp3_44100_128",
+        voiceSettings: {
+          stability: 0.5,
+          similarityBoost: 0.8,
+          style: 0.2,
+          useSpeakerBoost: true,
+          speed: 1.0,
+        },
+      });
 
-    // Convert stream to buffer
-    const chunks: Buffer[] = [];
-    for await (const chunk of audioStream) {
-      chunks.push(chunk);
+      // Convert stream to buffer
+      const chunks: Buffer[] = [];
+      for await (const chunk of audioStream) {
+        chunks.push(chunk);
+      }
+      const audioBuffer = Buffer.concat(chunks);
+
+      console.log("✅ Speech generated successfully");
+
+      // Return audio as response
+      return new NextResponse(audioBuffer, {
+        status: 200,
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Content-Length": audioBuffer.length.toString(),
+          "Cache-Control": "no-cache",
+        },
+      });
+    } catch (elevenLabsError) {
+      console.error("❌ ElevenLabs TTS Error:", elevenLabsError);
+
+      // If Spanish voice fails, try fallback to English voice
+      if (language === "spanish") {
+        console.log("🔄 Falling back to English voice for Spanish text");
+        try {
+          const fallbackVoiceId = VOICE_CONFIG.english.female;
+          const audioStream = await elevenlabs.textToSpeech.stream(
+            fallbackVoiceId,
+            {
+              text,
+              modelId: "eleven_flash_v2_5",
+              outputFormat: "mp3_44100_128",
+              voiceSettings: {
+                stability: 0.5,
+                similarityBoost: 0.8,
+                style: 0.2,
+                useSpeakerBoost: true,
+                speed: 1.0,
+              },
+            }
+          );
+
+          const chunks: Buffer[] = [];
+          for await (const chunk of audioStream) {
+            chunks.push(chunk);
+          }
+          const audioBuffer = Buffer.concat(chunks);
+
+          console.log("✅ Speech generated with fallback voice");
+
+          return new NextResponse(audioBuffer, {
+            status: 200,
+            headers: {
+              "Content-Type": "audio/mpeg",
+              "Content-Length": audioBuffer.length.toString(),
+              "Cache-Control": "no-cache",
+            },
+          });
+        } catch (fallbackError) {
+          console.error("❌ Fallback voice also failed:", fallbackError);
+          throw elevenLabsError;
+        }
+      } else {
+        throw elevenLabsError;
+      }
     }
-    const audioBuffer = Buffer.concat(chunks);
-
-    console.log("✅ Speech generated successfully");
-
-    // Return audio as response
-    return new NextResponse(audioBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Content-Length": audioBuffer.length.toString(),
-        "Cache-Control": "no-cache",
-      },
-    });
   } catch (error) {
     console.error("❌ TTS API Error:", error);
     return NextResponse.json(
