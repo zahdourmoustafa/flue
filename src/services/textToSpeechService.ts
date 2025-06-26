@@ -19,9 +19,10 @@ export class TextToSpeechService {
   /**
    * Convert text to speech with instant streaming playback
    * @param options - TTS configuration options
+   * @param onComplete - Optional callback when audio finishes playing
    * @returns Promise that resolves when audio starts playing
    */
-  async speak(options: TTSOptions): Promise<void> {
+  async speak(options: TTSOptions, onComplete?: () => void): Promise<void> {
     try {
       console.log("🗣️ Speaking:", {
         text: options.text.substring(0, 50) + "...",
@@ -45,7 +46,7 @@ export class TextToSpeechService {
       const audioData = await this.generateSpeech(options);
 
       // Play the audio immediately
-      await this.playAudioData(audioData);
+      await this.playAudioData(audioData, onComplete);
     } catch (error) {
       console.error("❌ TTS Error:", error);
       throw error;
@@ -80,7 +81,10 @@ export class TextToSpeechService {
   /**
    * Play audio data using Web Audio API for instant playback
    */
-  private async playAudioData(audioData: ArrayBuffer): Promise<void> {
+  private async playAudioData(
+    audioData: ArrayBuffer,
+    onComplete?: () => void
+  ): Promise<void> {
     try {
       if (!this.audioContext) return;
 
@@ -103,6 +107,9 @@ export class TextToSpeechService {
       // Clear reference when audio ends
       source.onended = () => {
         this.currentAudioSource = null;
+        if (onComplete) {
+          onComplete();
+        }
       };
     } catch (error) {
       console.error("❌ Audio playback error:", error);
@@ -172,7 +179,7 @@ export class TextToSpeechService {
   /**
    * Play preloaded audio if available, otherwise generate new audio
    */
-  async speakFast(options: TTSOptions): Promise<void> {
+  async speakFast(options: TTSOptions, onComplete?: () => void): Promise<void> {
     // Check if we have preloaded audio
     const preloadedAudio = this.audioBuffers.get(options.text);
 
@@ -194,13 +201,16 @@ export class TextToSpeechService {
       // Clear reference when audio ends
       source.onended = () => {
         this.currentAudioSource = null;
+        if (onComplete) {
+          onComplete();
+        }
       };
 
       return;
     }
 
     // Fall back to regular TTS
-    return this.speak(options);
+    return this.speak(options, onComplete);
   }
 
   /**

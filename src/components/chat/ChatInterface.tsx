@@ -543,6 +543,7 @@ export function ChatInterface() {
         message={selectedTranslationMessage}
         translation={currentTranslation}
         isLoading={isTranslating}
+        learningLanguage={learningLanguage}
         onClose={() => {
           setTranslationPanelOpen(false);
           setSelectedTranslationMessage(null);
