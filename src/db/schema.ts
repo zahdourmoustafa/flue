@@ -255,3 +255,29 @@ export const userSentenceProgressRelations = relations(
     }),
   })
 );
+
+// Call Mode Tables
+export const callSessions = pgTable("call_sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  duration: integer("duration").notNull(), // in seconds
+  languageUsed: text("language_used").notNull(),
+  correctionsMade: integer("corrections_made").default(0),
+  topicsCovered: text("topics_covered").array(),
+  aiFeedback: text("ai_feedback"),
+  userSatisfaction: integer("user_satisfaction"), // 1-5 scale
+  pronunciationScore: integer("pronunciation_score"), // 1-100 scale
+  wordsSpoken: integer("words_spoken").default(0),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const callSessionsRelations = relations(callSessions, ({ one }) => ({
+  user: one(user, {
+    fields: [callSessions.userId],
+    references: [user.id],
+  }),
+}));

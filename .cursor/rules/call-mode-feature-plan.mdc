@@ -1,0 +1,292 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Call Mode Feature Plan
+
+## Overview
+Call Mode is a real-time voice conversation feature that simulates a phone call experience with an AI language teacher. Users can practice speaking and listening skills through natural voice interactions using OpenAI's Realtime API.
+
+## Feature Details
+
+### Core Functionality
+- **Real-time voice-to-voice conversation** using OpenAI Realtime API
+- **AI Language Teacher**: Acts as a senior language teacher who corrects pronunciation, grammar, and helps users learn
+- **Phone call simulation**: Includes ringing sound and call interface
+- **Language detection**: Automatically speaks in user's target language from profile
+- **Short responses**: AI provides concise, educational feedback
+
+### User Journey
+1. User navigates to `/dashboard/call-mode`
+2. Phone ringing sound plays (sonnerie)
+3. AI automatically connects and greets: "Hi {username}, how are you doing?"
+4. Real-time conversation begins:
+   - User speaks → AI listens and understands
+   - AI responds with corrections, suggestions, and questions
+   - Continuous back-and-forth conversation
+   - AI can interrupt and be interrupted naturally
+
+### AI Teacher Behavior
+- **Corrective**: Gently corrects pronunciation and grammar mistakes
+- **Encouraging**: Provides positive reinforcement
+- **Educational**: Explains language rules and suggests improvements
+- **Conversational**: Maintains natural flow while teaching
+- **Adaptive**: Adjusts difficulty based on user's responses
+- **Concise**: Keeps responses short and focused
+
+## Technical Architecture
+
+### Frontend Components
+```
+/dashboard/call-mode/
+├── page.tsx                 # Main call mode page
+├── components/
+│   ├── CallInterface.tsx    # Main call UI component
+│   ├── CallControls.tsx     # Mute, end call, volume controls
+│   ├── CallStatus.tsx       # Ringing, connected, talking status
+│   ├── VoiceWaveform.tsx    # Visual feedback for voice activity
+│   └── TeacherAvatar.tsx    # AI teacher avatar display
+```
+
+### Core Technologies
+- **OpenAI Realtime API**: Primary voice processing engine
+- **WebRTC**: Audio capture and playback
+- **Web Audio API**: Audio processing and effects
+- **React hooks**: State management for call flow
+
+### API Integration
+```typescript
+// OpenAI Realtime API Configuration
+{
+  model: "gpt-4o-realtime-preview",
+  voice: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer",
+  turn_detection: { type: "server_vad" },
+  input_audio_transcription: { model: "whisper-1" },
+  temperature: 0.7,
+  max_response_output_tokens: 150 // Keep responses short
+}
+```
+
+## Database Schema
+
+### User Profile Integration
+```sql
+-- Existing user table should include:
+users {
+  target_language: varchar(10) -- 'es', 'en', etc.
+  current_level: varchar(20)   -- 'beginner', 'intermediate', 'advanced'
+  name: varchar(255)
+}
+
+-- New call session tracking
+call_sessions {
+  id: uuid PRIMARY KEY,
+  user_id: uuid REFERENCES users(id),
+  duration: integer,
+  language_used: varchar(10),
+  corrections_made: integer,
+  topics_covered: text[],
+  ai_feedback: text,
+  created_at: timestamp DEFAULT now()
+}
+```
+
+## UI/UX Design
+
+### Call Interface States
+1. **Ringing State**
+   - Phone ringing animation
+   - Emma avatar with "Calling..." status
+   - Ringing sound effect
+
+2. **Connected State**
+   - Timer showing call duration
+   - Voice activity visualization
+   - Mute/unmute controls
+   - End call button
+
+3. **Speaking Indicators**
+   - Visual feedback when user is speaking
+   - Visual feedback when AI is responding
+   - Voice waveform animations
+
+### Visual Components
+```tsx
+// Call Status Indicators
+- Ringing: Pulsing blue circle around avatar
+- Connected: Green dot indicator
+- Speaking: Animated voice waves
+- Listening: Subtle avatar animation
+```
+
+## Implementation Steps
+
+### Phase 1: Basic Setup
+1. Install OpenAI Realtime API package
+2. Create call mode page structure
+3. Implement basic audio capture/playback
+4. Add phone ringing sound effect
+
+### Phase 2: Core Functionality
+1. Integrate OpenAI Realtime API
+2. Implement voice activity detection
+3. Add language detection from user profile
+4. Create basic call controls
+
+### Phase 3: AI Teacher Features
+1. Configure AI prompts for teaching behavior
+2. Implement response length limits
+3. Add correction and feedback logic
+4. Create educational conversation flow
+
+### Phase 4: Advanced Features
+1. Call session tracking
+2. Progress analytics
+3. Voice quality improvements
+4. Advanced teaching modes
+
+## Technical Specifications
+
+### Audio Requirements
+- **Sample Rate**: 24kHz PCM16
+- **Latency**: <200ms end-to-end
+- **Audio Format**: Int16Array for realtime processing
+- **Microphone Permissions**: Required on page load
+
+### Performance Considerations
+- **WebSocket Connection**: Persistent connection for low latency
+- **Audio Buffering**: Minimal buffering for real-time feel
+- **Error Handling**: Graceful degradation for connection issues
+- **Browser Compatibility**: Chrome, Firefox, Safari support
+
+### Security & Privacy
+- **API Key Management**: Server-side relay for browser security
+- **Audio Data**: Not stored permanently unless user consents
+- **Session Encryption**: WSS connection for voice data
+
+## AI Prompt Engineering
+
+### System Instructions
+```
+You are Emma, a senior language teacher conducting a voice conversation lesson. 
+
+CORE BEHAVIOR:
+- Speak in {user_target_language} only
+- Keep responses under 20 words when possible
+- Gently correct pronunciation and grammar mistakes
+- Ask follow-up questions to encourage conversation
+- Provide positive reinforcement
+- Adapt to user's proficiency level
+
+CORRECTION STYLE:
+- "Actually, it's pronounced like this: [correct pronunciation]"
+- "Good! Just a small note: we say [correction] instead"
+- "Perfect pronunciation! Now try this phrase..."
+
+CONVERSATION FLOW:
+- Start with greeting using user's name
+- Ask about their day/interests
+- Introduce new vocabulary naturally
+- Correct mistakes without breaking flow
+- End with encouragement and next steps
+```
+
+### Language-Specific Prompts
+```typescript
+const languagePrompts = {
+  'es': 'Eres Emma, una profesora senior de español. Habla solo en español...',
+  'en': 'You are Emma, a senior English teacher. Speak only in English...',
+  'fr': 'Tu es Emma, une professeure senior de français. Parle seulement en français...'
+}
+```
+
+## Error Handling
+
+### Common Scenarios
+1. **Microphone Access Denied**: Fallback to text mode
+2. **Network Issues**: Retry connection with exponential backoff
+3. **API Rate Limits**: Queue requests and show waiting state
+4. **Audio Playback Issues**: Provide error message and restart option
+
+### Fallback Strategies
+- **Connection Loss**: Auto-reconnect within 30 seconds
+- **Audio Issues**: Switch to text-based interaction
+- **API Failures**: Show friendly error message with retry option
+
+## Testing Strategy
+
+### Functional Testing
+- Voice input/output quality
+- Language detection accuracy
+- AI response appropriateness
+- Call controls functionality
+
+### Performance Testing
+- Latency measurements
+- Audio quality under poor network conditions
+- Memory usage during long calls
+- Battery impact on mobile devices
+
+### User Testing
+- Teaching effectiveness
+- User engagement levels
+- Pronunciation improvement tracking
+- Overall learning experience
+
+## Future Enhancements
+
+### Advanced Features
+- **Multiple AI Teachers**: Different personalities and teaching styles
+- **Specialized Lessons**: Grammar, pronunciation, conversation topics
+- **Group Calls**: Multiple students with one AI teacher
+- **Voice Analytics**: Detailed pronunciation feedback
+- **Custom Scenarios**: Business English, travel conversations, etc.
+
+### Integration Opportunities
+- **Calendar Integration**: Scheduled lesson calls
+- **Progress Tracking**: Integration with existing learning metrics
+- **Social Features**: Share call highlights with other learners
+- **Gamification**: Points for conversation milestones
+
+## Success Metrics
+
+### Key Performance Indicators
+- **User Engagement**: Average call duration, frequency of use
+- **Learning Outcomes**: Pronunciation improvement, vocabulary growth
+- **Technical Performance**: Audio latency, connection stability
+- **User Satisfaction**: Ratings, feedback scores, retention rates
+
+### Analytics Tracking
+```typescript
+// Call Session Analytics
+{
+  session_id: string,
+  duration_minutes: number,
+  words_spoken: number,
+  corrections_received: number,
+  new_vocabulary_learned: string[],
+  pronunciation_score: number,
+  conversation_topics: string[],
+  user_satisfaction: number // 1-5 scale
+}
+```
+
+## Deployment Considerations
+
+### Environment Variables
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_REALTIME_URL=wss://api.openai.com/v1/realtime
+CALL_MODE_ENABLED=true
+MAX_CALL_DURATION_MINUTES=30
+```
+
+### Infrastructure Requirements
+- **WebSocket Support**: For real-time audio streaming
+- **CDN**: For audio assets (ringing sounds, etc.)
+- **Monitoring**: Audio quality and connection metrics
+- **Scaling**: Handle concurrent voice sessions
+
+This comprehensive plan provides the foundation for implementing a sophisticated call mode feature that combines real-time voice technology with effective language teaching methodology.
+

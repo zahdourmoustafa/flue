@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MessageCircle, Video, Mic, Play } from "lucide-react";
+import { MessageCircle, Video, Mic, Play, Phone } from "lucide-react";
 import { LearningModeCard } from "./learning-mode-card";
 
 const learningModes = [
@@ -16,14 +16,25 @@ const learningModes = [
     tags: ["#Writing", "#Reading", "#Conversation"],
   },
   {
-    id: "call",
-    title: "Voice Call",
+    id: "call-mode",
+    title: "Call Mode",
     description:
-      "Practice speaking with real-time voice conversations to boost your pronunciation and listening skills.",
+      "Real-time voice conversations with AI teacher Emma. Practice speaking and get instant corrections like a phone call.",
+    href: "/dashboard/call-mode",
+    color: "from-indigo-400 via-purple-500 to-blue-600",
+    icon: Phone,
+    tags: ["#Speaking", "#Real-time", "#Voice"],
+    badge: "New",
+  },
+  {
+    id: "video-call",
+    title: "Video Call",
+    description:
+      "Interactive video conversations with visual AI avatars for immersive speaking practice.",
     href: "/dashboard/videocall",
     color: "from-rose-400 via-pink-500 to-red-500",
     icon: Video,
-    tags: ["#Speaking", "#Listening", "#Pronunciation"],
+    tags: ["#Video", "#Avatar", "#Immersive"],
     badge: "Popular",
   },
   {
@@ -31,11 +42,10 @@ const learningModes = [
     title: "Sentence Builder",
     description:
       "Master grammar and sentence structure through interactive exercises and guided practice.",
-    href: "/dashboard/sentence",
+    href: "/dashboard/sentence-mode",
     color: "from-blue-400 via-blue-500 to-purple-600",
     icon: Play,
     tags: ["#Grammar", "#Structure", "#Practice"],
-    badge: "New",
   },
   {
     id: "dialogue",
