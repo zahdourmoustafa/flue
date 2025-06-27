@@ -12,7 +12,7 @@ interface MessageListProps {
   isAiTyping?: boolean;
   onErrorIconClick: (message: Message) => void;
   onRepeatAudio: (messageId: string) => void;
-  onTranslate: (messageId: string) => void;
+  onTranslate: (message: Message) => void;
   onPlayPronunciation: (audioUrl: string) => void;
 }
 

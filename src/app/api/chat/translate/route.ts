@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 export async function POST(request: NextRequest) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     console.log("🔄 Translation direction:", `${from} → ${to}`);
 
     // Validate OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
       console.log("❌ OpenAI API key not configured");
       return NextResponse.json(
         { error: "Translation service not configured" },
@@ -112,15 +112,7 @@ export async function POST(request: NextRequest) {
       translation.substring(0, 100) + "..."
     );
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        translation,
-        originalText: text,
-        from,
-        to,
-      },
-    });
+    return NextResponse.json({ translatedText: translation });
   } catch (error) {
     console.error("❌ Translation API error:", error);
     return NextResponse.json(

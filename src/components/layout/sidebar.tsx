@@ -15,6 +15,7 @@ import {
   Camera,
   User,
   Zap,
+  Phone,
 } from "lucide-react";
 
 const navigation = [
@@ -27,7 +28,9 @@ const learningModes = [
   { name: "Chat", href: "/dashboard/chat", icon: MessageCircle },
   { name: "Dialogue Mode", href: "/dashboard/dialogue", icon: Mic },
   { name: "Sentence Mode", href: "/dashboard/sentence-mode", icon: Play },
-  { name: "Call Mode", href: "/dashboard/video-call", icon: Video },
+  { name: "Video Call", href: "/dashboard/videocall", icon: Video },
+  { name: "Call Mode", href: "/dashboard/call-mode", icon: Phone },
+
   { name: "Roleplays", href: "/dashboard/roleplays", icon: Users },
   { name: "Characters", href: "/dashboard/characters", icon: User },
   { name: "Debates", href: "/dashboard/debates", icon: MessageCircle },

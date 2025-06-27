@@ -12,6 +12,7 @@ interface TranslationPanelProps {
   message: Message | null;
   translation: string | null;
   isLoading: boolean;
+  isError: boolean;
   learningLanguage?: string;
   onClose: () => void;
 }
@@ -21,6 +22,7 @@ export function TranslationPanel({
   message,
   translation,
   isLoading,
+  isError,
   learningLanguage = "en",
   onClose,
 }: TranslationPanelProps) {
@@ -37,7 +39,8 @@ export function TranslationPanel({
   };
 
   const learningLangName = languageNames[learningLanguage] || learningLanguage;
-  const translationLangName = learningLanguage === "en" ? "Spanish" : "English";
+  const translationLangName =
+    languageNames[learningLanguage === "en" ? "es" : "en"];
 
   const handleCopy = async () => {
     if (translation) {
@@ -113,7 +116,7 @@ export function TranslationPanel({
                       : learningLangName}
                     )
                   </h3>
-                  {translation && (
+                  {translation && !isLoading && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -137,14 +140,18 @@ export function TranslationPanel({
 
                 <div className="bg-blue-50 rounded-lg p-3 min-h-[60px] flex items-center">
                   {isLoading ? (
-                    <LoadingSpinner size="sm" text="Translating..." />
+                    <LoadingSpinner
+                      size="sm"
+                      text="Translating..."
+                      color="bg-black"
+                    />
+                  ) : isError ? (
+                    <p className="text-sm text-red-500">
+                      Translation failed. Please try again.
+                    </p>
                   ) : translation ? (
                     <p className="text-sm text-gray-800">{translation}</p>
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      Translation not available
-                    </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
 

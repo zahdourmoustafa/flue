@@ -11,7 +11,7 @@ interface MessageBubbleProps {
   message: Message;
   onErrorIconClick: (message: Message) => void;
   onRepeatAudio: (messageId: string) => void;
-  onTranslate: (messageId: string) => void;
+  onTranslate: (message: Message) => void;
   onPlayPronunciation: (audioUrl: string) => void;
 }
 
@@ -43,7 +43,7 @@ export function MessageBubble({
           </div>
 
           <AudioControls
-            messageId={message.id}
+            message={message}
             onRepeatAudio={onRepeatAudio}
             onTranslate={onTranslate}
           />

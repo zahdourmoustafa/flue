@@ -5,6 +5,7 @@ interface LoadingDotsProps {
   variant?: "dots" | "spinner" | "pulse";
   className?: string;
   text?: string;
+  color?: string;
 }
 
 export function LoadingDots({
@@ -12,6 +13,7 @@ export function LoadingDots({
   variant = "dots",
   className,
   text,
+  color = "bg-gray-400",
 }: LoadingDotsProps) {
   const sizeClasses = {
     sm: "w-1 h-1",
@@ -31,12 +33,14 @@ export function LoadingDots({
     lg: "w-5 h-5 border-2",
   };
 
+  const spinnerColorClass = color.replace("bg-", "border-");
+
   if (variant === "spinner") {
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <div
           className={cn(
-            "border-gray-400 border-t-transparent rounded-full animate-spin",
+            `${spinnerColorClass} border-t-transparent rounded-full animate-spin`,
             spinnerSizeClasses[size]
           )}
         />
@@ -54,7 +58,7 @@ export function LoadingDots({
       <div className={cn("flex items-center gap-2", className)}>
         <div
           className={cn(
-            "bg-gray-400 rounded-full animate-pulse",
+            `${color} rounded-full animate-pulse`,
             sizeClasses[size]
           )}
         />
@@ -75,19 +79,19 @@ export function LoadingDots({
       <div className="flex gap-1">
         <div
           className={cn(
-            "bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]",
+            `${color} rounded-full animate-bounce [animation-delay:-0.3s]`,
             sizeClasses[size]
           )}
         />
         <div
           className={cn(
-            "bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]",
+            `${color} rounded-full animate-bounce [animation-delay:-0.15s]`,
             sizeClasses[size]
           )}
         />
         <div
           className={cn(
-            "bg-gray-400 rounded-full animate-bounce",
+            `${color} rounded-full animate-bounce`,
             sizeClasses[size]
           )}
         />
@@ -106,6 +110,7 @@ export function LoadingSpinner({
   size = "md",
   text,
   className,
+  color,
 }: Omit<LoadingDotsProps, "variant">) {
   return (
     <LoadingDots
@@ -113,6 +118,7 @@ export function LoadingSpinner({
       size={size}
       text={text}
       className={className}
+      color={color}
     />
   );
 }
@@ -121,6 +127,7 @@ export function LoadingPulse({
   size = "md",
   text,
   className,
+  color,
 }: Omit<LoadingDotsProps, "variant">) {
   return (
     <LoadingDots
@@ -128,6 +135,7 @@ export function LoadingPulse({
       size={size}
       text={text}
       className={className}
+      color={color}
     />
   );
 }
@@ -136,8 +144,15 @@ export function ThreeDots({
   size = "md",
   text,
   className,
+  color,
 }: Omit<LoadingDotsProps, "variant">) {
   return (
-    <LoadingDots variant="dots" size={size} text={text} className={className} />
+    <LoadingDots
+      variant="dots"
+      size={size}
+      text={text}
+      className={className}
+      color={color}
+    />
   );
 }

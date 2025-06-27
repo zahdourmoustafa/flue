@@ -1,0 +1,494 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Interface Localization with Lingo.dev - Feature Implementation Plan
+
+## 1. Feature Overview
+
+### 1.1 Purpose
+Implement dynamic interface localization using Lingo.dev to automatically translate all UI elements, buttons, labels, error messages, and static content based on the user's selected interface language preference.
+
+### 1.2 User Experience Flow
+1. User navigates to Profile Settings → Interface Language
+2. User selects new interface language from shadcn Select component
+3. System updates user's `preferredLanguage` in database
+4. Entire web application interface instantly switches to selected language
+5. All subsequent page loads and interactions display in the chosen language
+
+### 1.3 Scope
+- **In Scope:** All static UI text, navigation, buttons, labels, error messages, tooltips, placeholders
+- **Out of Scope:** Learning content, AI responses, user-generated content
+- **Languages:** Start with 5 core languages (English, Spanish, French, German, Italian)
+
+## 2. Technical Architecture
+
+### 2.1 Lingo.dev Integration Strategy
+```typescript
+// Core integration approach
+interface LocalizationConfig {
+  provider: 'lingo.dev';
+  sourceLocale: 'en';
+  targetLocales: ['es', 'fr', 'de', 'it'];
+  translationKeys: {
+    ui: string;
+    navigation: string;
+    buttons: string;
+    errors: string;
+    validation: string;
+  };
+}
+```
+
+### 2.2 Translation Key Structure
+```json
+{
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "chat": "Chat Mode",
+    "dialogue": "Dialogue Mode",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "welcome": "Welcome back!",
+    "progress": "Your Progress",
+    "continue": "Continue Learning"
+  },
+  "settings": {
+    "profile": "Profile",
+    "interfaceLanguage": "Interface Language",
+    "learningLanguage": "Learning Language",
+    "save": "Save Changes"
+  }
+}
+```
+
+## 3. Implementation Plan
+
+### 3.1 Phase 1: Lingo.dev Setup & Configuration
+```bash
+# Install and configure Lingo.dev
+npx lingo.dev@latest auth --login
+npx lingo.dev@latest init
+
+# Configuration responses:
+# Source locale: en
+# Target locales: es fr de it
+# Bucket type: JSON
+# Path: src/locales
+```
+
+### 3.2 Phase 2: Next.js i18n Integration
+```typescript
+// next.config.js updates
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  i18n: {
+    locales: ['en', 'es', 'fr', 'de', 'it'],
+    defaultLocale: 'en',
+    localeDetection: false, // We handle this manually
+  },
+  // ... existing config
+};
+```
+
+### 3.3 Phase 3: Translation Hook Implementation
+```typescript
+// src/hooks/useTranslation.ts
+import { useRouter } from 'next/router';
+import { useAuth } from '@/contexts/auth-context';
+import translations from '@/locales/translations.json';
+
+export const useTranslation = () => {
+  const { user } = useAuth();
+  const router = useRouter();
+  
+  const locale = user?.preferredLanguage || 'en';
+  
+  const t = (key: string): string => {
+    const keys = key.split('.');
+    let value = translations[locale];
+    
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    
+    return value || key;
+  };
+  
+  const changeLanguage = async (newLocale: string) => {
+    // Update user preference
+    await updateUserLanguage(newLocale);
+    
+    // Force router refresh with new locale
+    router.push(router.asPath, router.asPath, { locale: newLocale });
+  };
+  
+  return { t, locale, changeLanguage };
+};
+```
+
+### 3.4 Phase 4: Enhanced Language Selector Component
+```typescript
+// src/components/settings/InterfaceLanguageSelector.tsx
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from '@/hooks/useTranslation';
+import { useAuth } from '@/contexts/auth-context';
+
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+];
+
+export const InterfaceLanguageSelector = () => {
+  const { t, locale, changeLanguage } = useTranslation();
+  const { user, updateUser } = useAuth();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleLanguageChange = async (newLocale: string) => {
+    setIsUpdating(true);
+    try {
+      // Update in database
+      await fetch('/api/auth/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          preferredLanguage: newLocale,
+        }),
+      });
+
+      // Update local state
+      updateUser({ preferredLanguage: newLocale });
+      
+      // Change interface language
+      await changeLanguage(newLocale);
+      
+      toast({
+        title: t('settings.languageUpdated'),
+        description: t('settings.interfaceChanged'),
+      });
+    } catch (error) {
+      toast({
+        title: t('errors.updateFailed'),
+        description: t('errors.tryAgain'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium">
+        {t('settings.interfaceLanguage')}
+      </label>
+      <Select 
+        value={locale} 
+        onValueChange={handleLanguageChange}
+        disabled={isUpdating}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={t('settings.selectLanguage')} />
+        </SelectTrigger>
+        <SelectContent>
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code}>
+              <div className="flex items-center gap-2">
+                <span>{lang.flag}</span>
+                <span>{lang.name}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+```
+
+### 3.5 Phase 5: Middleware Enhancement
+```typescript
+// middleware.ts updates
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export async function middleware(request: NextRequest) {
+  // Existing auth logic...
+  
+  // Handle locale routing
+  if (request.nextUrl.pathname.startsWith("/dashboard")) {
+    try {
+      const sessionResponse = await fetch(
+        new URL("/api/auth/get-session", request.url),
+        {
+          headers: {
+            cookie: request.headers.get("cookie") || "",
+          },
+        }
+      );
+
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json();
+        const userLocale = sessionData.user?.preferredLanguage || 'en';
+        
+        // Set locale header for i18n
+        const response = NextResponse.next();
+        response.headers.set('x-user-locale', userLocale);
+        return response;
+      }
+    } catch (error) {
+      console.error("Middleware locale error:", error);
+    }
+  }
+
+  return NextResponse.next();
+}
+```
+
+## 4. Component Integration Strategy
+
+### 4.1 Layout Components
+```typescript
+// src/app/layout.tsx
+import { TranslationProvider } from '@/providers/TranslationProvider';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <QueryProvider>
+          <AuthProvider>
+            <TranslationProvider>
+              <ThemeProvider>
+                {children}
+                <Toaster />
+              </ThemeProvider>
+            </TranslationProvider>
+          </AuthProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 4.2 Key Components to Update
+1. **Navigation/Sidebar** (`src/components/layout/sidebar.tsx`)
+2. **Dashboard Cards** (`src/components/dashboard/`)
+3. **Settings Panels** (`src/components/account/`)
+4. **Auth Forms** (`src/modules/auth/ui/`)
+5. **Error Messages** (All toast notifications)
+6. **Form Labels** (All form components)
+
+### 4.3 Example Component Migration
+```typescript
+// Before (hardcoded)
+<Button className="w-full">
+  Continue Learning
+</Button>
+
+// After (localized)
+<Button className="w-full">
+  {t('dashboard.continueLearning')}
+</Button>
+```
+
+## 5. Database Considerations
+
+### 5.1 Schema Validation
+```sql
+-- Ensure preferredLanguage field exists and has proper constraints
+ALTER TABLE "user" 
+ALTER COLUMN "preferred_language" 
+SET DEFAULT 'en';
+
+-- Add constraint for supported languages
+ALTER TABLE "user" 
+ADD CONSTRAINT check_preferred_language 
+CHECK (preferred_language IN ('en', 'es', 'fr', 'de', 'it'));
+```
+
+### 5.2 Migration Strategy
+```typescript
+// Database migration for existing users
+export async function migrateUserLanguages() {
+  await db.update(user)
+    .set({ preferredLanguage: 'en' })
+    .where(isNull(user.preferredLanguage));
+}
+```
+
+## 6. Automation & CI/CD Integration
+
+### 6.1 Lingo.dev Workflow
+```yaml
+# .github/workflows/localization.yml
+name: Localization Update
+on:
+  push:
+    paths:
+      - 'src/locales/en.json'
+    branches: [main]
+
+jobs:
+  update-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Update translations
+        run: npx lingo.dev@latest i18n
+        env:
+          LINGODOTDEV_API_KEY: ${{ secrets.LINGO_API_KEY }}
+      - name: Commit updated translations
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/locales/
+          git diff --staged --quiet || git commit -m "🌐 Update translations via Lingo.dev"
+          git push
+```
+
+## 7. Testing Strategy
+
+### 7.1 Unit Tests
+```typescript
+// src/hooks/__tests__/useTranslation.test.ts
+describe('useTranslation', () => {
+  it('should return correct translation for key', () => {
+    const { result } = renderHook(() => useTranslation(), {
+      wrapper: ({ children }) => (
+        <MockAuthProvider locale="es">
+          {children}
+        </MockAuthProvider>
+      ),
+    });
+
+    expect(result.current.t('auth.signIn')).toBe('Iniciar Sesión');
+  });
+
+  it('should fallback to key when translation missing', () => {
+    const { result } = renderHook(() => useTranslation());
+    expect(result.current.t('missing.key')).toBe('missing.key');
+  });
+});
+```
+
+### 7.2 E2E Tests
+```typescript
+// e2e/localization.spec.ts
+test('interface language changes entire app', async ({ page }) => {
+  await page.goto('/dashboard');
+  
+  // Change language to Spanish
+  await page.click('[data-testid="settings-button"]');
+  await page.selectOption('[data-testid="interface-language"]', 'es');
+  
+  // Verify UI elements are in Spanish
+  await expect(page.locator('[data-testid="dashboard-title"]'))
+    .toHaveText('Panel de Control');
+  await expect(page.locator('[data-testid="chat-mode-card"]'))
+    .toContainText('Modo Chat');
+});
+```
+
+## 8. Performance Considerations
+
+### 8.1 Bundle Optimization
+```typescript
+// Dynamic import for translations
+const loadTranslations = async (locale: string) => {
+  const translations = await import(`@/locales/${locale}.json`);
+  return translations.default;
+};
+```
+
+### 8.2 Caching Strategy
+```typescript
+// Translation caching
+const translationCache = new Map<string, Record<string, any>>();
+
+export const getCachedTranslations = (locale: string) => {
+  if (!translationCache.has(locale)) {
+    const translations = require(`@/locales/${locale}.json`);
+    translationCache.set(locale, translations);
+  }
+  return translationCache.get(locale);
+};
+```
+
+## 9. Rollout Plan
+
+### 9.1 Development Phase (Week 1)
+- [ ] Setup Lingo.dev account and CLI
+- [ ] Create initial translation keys for core components
+- [ ] Implement useTranslation hook
+- [ ] Update 5 key components (auth, navigation, dashboard)
+
+### 9.2 Integration Phase (Week 2)
+- [ ] Enhance language selector in settings
+- [ ] Update all remaining components
+- [ ] Implement middleware enhancements
+- [ ] Add comprehensive error handling
+
+### 9.3 Testing Phase (Week 3)
+- [ ] Unit tests for translation hook
+- [ ] E2E tests for language switching
+- [ ] Performance testing with multiple locales
+- [ ] User acceptance testing
+
+### 9.4 Production Phase (Week 4)
+- [ ] Deploy with feature flag
+- [ ] Monitor translation quality
+- [ ] Collect user feedback
+- [ ] Full rollout to all users
+
+## 10. Monitoring & Maintenance
+
+### 10.1 Analytics
+```typescript
+// Track language usage
+analytics.track('Interface Language Changed', {
+  userId: user.id,
+  fromLanguage: previousLocale,
+  toLanguage: newLocale,
+  timestamp: new Date().toISOString(),
+});
+```
+
+### 10.2 Translation Quality Monitoring
+- Set up alerts for missing translation keys
+- Regular translation accuracy reviews
+- User feedback collection for poor translations
+- A/B testing for translation alternatives
+
+## 11. Success Metrics
+
+- **Technical:** Zero missing translation keys in production
+- **User Experience:** < 2 second language switch time
+- **Adoption:** > 30% of users use non-English interface
+- **Quality:** < 5% user reports of poor translations
+- **Performance:** No impact on page load times
+
+This implementation will provide a seamless, professional localization experience that automatically adapts the entire interface to the user's preferred language while maintaining the integrity of learning content and AI interactions.

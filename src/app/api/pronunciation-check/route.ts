@@ -133,10 +133,11 @@ Transcribed text: "${transcribedText}"`;
 
       const wordScores: WordScore[] = words.map((word, index) => {
         const transcribedWord = transcribedWords[index];
-        const isCorrect =
+        const isCorrect = !!(
           transcribedWord &&
           transcribedWord.toLowerCase().replace(/[.,!?]/g, "") ===
-            word.toLowerCase().replace(/[.,!?]/g, "");
+            word.toLowerCase().replace(/[.,!?]/g, "")
+        );
 
         return {
           word: word.replace(/[.,!?]/g, ""),

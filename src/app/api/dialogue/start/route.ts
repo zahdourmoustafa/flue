@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (error.message.includes("OPENAI_API_KEY")) {
+      if (error.message.includes("NEXT_PUBLIC_OPENAI_API_KEY")) {
         console.log("🔑 OpenAI API key missing");
         return NextResponse.json(
           { success: false, error: "AI service temporarily unavailable" },
