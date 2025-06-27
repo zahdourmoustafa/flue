@@ -1,106 +1,47 @@
-import { useState, useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
-interface TranslationState {
-  translation: string | null;
-  isLoading: boolean;
-  error: string | null;
+interface TranslateParams {
+  text: string;
+  from: string;
+  to: string;
 }
 
-interface TranslationResponse {
-  translation: string;
-  originalText: string;
-  sourceLanguage: string;
-  targetLanguage: string;
-  error?: string;
+interface TranslateResponse {
+  translatedText: string;
 }
 
-export const useTranslation = () => {
-  const [state, setState] = useState<TranslationState>({
-    translation: null,
-    isLoading: false,
-    error: null,
+const translateMessage = async ({
+  text,
+  from,
+  to,
+}: TranslateParams): Promise<TranslateResponse> => {
+  const response = await fetch("/api/chat/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, from, to }),
   });
 
-  const translate = useCallback(
-    async (text: string, targetLanguage: string, sourceLanguage = "en") => {
-      // If target language is the same as source, return original text
-      if (targetLanguage === sourceLanguage) {
-        setState({
-          translation: text,
-          isLoading: false,
-          error: null,
-        });
-        return text;
-      }
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to translate message");
+  }
 
-      setState({
-        translation: null,
-        isLoading: true,
-        error: null,
-      });
+  return response.json();
+};
 
-      try {
-        console.log("🌐 Requesting translation:", {
-          text: text.substring(0, 50) + "...",
-          from: sourceLanguage,
-          to: targetLanguage,
-        });
-
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text,
-            targetLanguage,
-            sourceLanguage,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Translation request failed");
-        }
-
-        const data: TranslationResponse = await response.json();
-
-        setState({
-          translation: data.translation,
-          isLoading: false,
-          error: data.error || null,
-        });
-
-        return data.translation;
-      } catch (error) {
-        console.error("Translation error:", error);
-        const errorMessage =
-          error instanceof Error ? error.message : "Translation failed";
-
-        setState({
-          translation: text, // Fallback to original text
-          isLoading: false,
-          error: errorMessage,
-        });
-
-        return text; // Return original text as fallback
-      }
+export const useTranslation = () => {
+  const mutation = useMutation<TranslateResponse, Error, TranslateParams>({
+    mutationFn: translateMessage,
+    onSuccess: () => {
+      // We can remove the toast from here to avoid repetitive notifications,
+      // as the UI will update to show the translation.
+      // toast.success("Message translated successfully!");
     },
-    []
-  );
+    onError: (error) => {
+      toast.error(error.message || "An unexpected error occurred.");
+    },
+  });
 
-  const reset = useCallback(() => {
-    setState({
-      translation: null,
-      isLoading: false,
-      error: null,
-    });
-  }, []);
-
-  return {
-    translation: state.translation,
-    isLoading: state.isLoading,
-    error: state.error,
-    translate,
-    reset,
-  };
+  return mutation;
 };

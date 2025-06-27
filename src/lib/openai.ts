@@ -1,11 +1,14 @@
 import OpenAI from "openai";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY environment variable is required");
+if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+  throw new Error(
+    "NEXT_PUBLIC_OPENAI_API_KEY environment variable is required"
+  );
 }
 
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
 });
 
 export interface ChatResponse {
@@ -41,10 +44,11 @@ export function createEmmaSystemPrompt(learningLanguage: string): string {
 1. ALWAYS respond in ${fullLanguageName} to help the student practice
 2. Act as a supportive tutor who makes learning enjoyable
 3. Correct mistakes gently but clearly when they occur
-4. Engage in natural conversations while teaching
+4. Keep your responses concise and to the point, ideally 1-3 sentences.
+5. Engage in natural conversations while teaching
 
 IMPORTANT RESPONSE FORMAT:
-- If the student's message has NO errors: Respond naturally in ${fullLanguageName}
+- If the student's message has NO errors: Respond naturally and concisely in ${fullLanguageName}
 - If the student's message HAS errors: First acknowledge their attempt positively, then provide your response
 
 For error correction, you should identify:
@@ -54,7 +58,7 @@ For error correction, you should identify:
 - Missing accents or punctuation
 - Vocabulary usage issues
 
-Keep conversations natural, encouraging, and educational. Ask follow-up questions to keep the dialogue flowing.`;
+Keep conversations natural, encouraging, and educational. Ask follow-up questions to keep the dialogue flowing, but always aim for brevity to avoid overwhelming the learner.`;
 }
 
 /**
@@ -68,8 +72,8 @@ export async function generateSuggestedAnswer(
     content: string;
   }> = []
 ): Promise<string> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    throw new Error("NEXT_PUBLIC_OPENAI_API_KEY is not configured");
   }
 
   const languageMap: Record<string, string> = {
@@ -311,5 +315,22 @@ Focus on: spelling, grammar, punctuation, accents, verb conjugations, and word c
   } catch (error) {
     console.error("Error analyzing message for errors:", error);
     return { hasErrors: false };
+  }
+}
+
+export async function getOpenAIEmbedding(text: string) {
+  if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    throw new Error("NEXT_PUBLIC_OPENAI_API_KEY is not configured");
+  }
+
+  try {
+    const response = await openai.embeddings.create({
+      model: "text-embedding-ada-002",
+      input: text,
+    });
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error("Error getting OpenAI embedding:", error);
+    throw error;
   }
 }

@@ -2,15 +2,16 @@
 
 import { RefreshCw, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { type Message } from "@/types/chat";
 
 interface AudioControlsProps {
-  messageId: string;
+  message: Message;
   onRepeatAudio: (messageId: string) => void;
-  onTranslate: (messageId: string) => void;
+  onTranslate: (message: Message) => void;
 }
 
 export function AudioControls({
-  messageId,
+  message,
   onRepeatAudio,
   onTranslate,
 }: AudioControlsProps) {
@@ -20,7 +21,7 @@ export function AudioControls({
         variant="ghost"
         size="sm"
         className="h-auto p-0 text-gray-500 hover:text-gray-700 font-normal text-sm"
-        onClick={() => onRepeatAudio(messageId)}
+        onClick={() => onRepeatAudio(message.id)}
       >
         <RefreshCw className="h-3 w-3 mr-1" />
         Repeat
@@ -30,7 +31,7 @@ export function AudioControls({
         variant="ghost"
         size="sm"
         className="h-auto p-0 text-gray-500 hover:text-gray-700 font-normal text-sm"
-        onClick={() => onTranslate(messageId)}
+        onClick={() => onTranslate(message)}
       >
         <Languages className="h-3 w-3 mr-1" />
         Translate

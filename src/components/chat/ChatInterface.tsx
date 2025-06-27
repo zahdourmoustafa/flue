@@ -64,8 +64,13 @@ export function ChatInterface() {
     useSuggestAnswer();
 
   // Use React Query for translation
-  const { mutate: translateMessage, isLoading: isTranslating } =
-    useTranslation();
+  const {
+    mutate: translateMessage,
+    isLoading: isTranslating,
+    data: translationData,
+    reset: resetTranslation,
+    isError: isTranslationError,
+  } = useTranslation();
 
   // Use React Query for another question
   const { mutate: generateAnotherQuestion, isLoading: isGeneratingQuestion } =
@@ -367,60 +372,24 @@ export function ChatInterface() {
     toast.success("Playing audio...");
   };
 
-  const handleTranslate = (messageId: string) => {
-    console.log("🌐 Translating message:", messageId);
-
-    const message = messages.find((msg) => msg.id === messageId);
-    if (!message) {
-      toast.error("Message not found");
+  const handleTranslate = (message: Message) => {
+    if (!user?.translationLanguage) {
+      toast.error("Please set your native language in settings.");
       return;
     }
 
-    if (!session) {
-      toast.error("Session not found");
-      return;
-    }
-
+    resetTranslation();
     setSelectedTranslationMessage(message);
     setTranslationPanelOpen(true);
-    setCurrentTranslation(null);
 
-    // Determine translation direction based on message sender and learning language
-    const isUserMessage = message.senderType === "user";
-    const learningLanguage = session.language;
-
-    let fromLanguage: string;
-    let toLanguage: string;
-
-    if (isUserMessage) {
-      // User message: translate from user's native language to learning language
-      fromLanguage = learningLanguage === "es" ? "English" : "Spanish";
-      toLanguage = learningLanguage === "es" ? "Spanish" : "English";
-    } else {
-      // AI message: translate from learning language to user's native language
-      fromLanguage = learningLanguage === "es" ? "Spanish" : "English";
-      toLanguage = learningLanguage === "es" ? "English" : "Spanish";
-    }
-
-    // Call translation API
-    translateMessage(
-      {
-        text: message.originalMessage,
-        from: fromLanguage,
-        to: toLanguage,
-      },
-      {
-        onSuccess: (response) => {
-          console.log("✅ Translation successful:", response.data.translation);
-          setCurrentTranslation(response.data.translation);
-        },
-        onError: (error) => {
-          console.error("❌ Translation failed:", error);
-          toast.error("Failed to translate message");
-          setCurrentTranslation("Translation failed. Please try again.");
-        },
-      }
-    );
+    translateMessage({
+      text: message.originalMessage,
+      from:
+        message.senderType === "user"
+          ? user.learningLanguage ?? "en"
+          : session?.language ?? "en",
+      to: user.translationLanguage,
+    });
   };
 
   // Loading state
@@ -537,18 +506,17 @@ export function ChatInterface() {
         onClose={() => setFeedbackPanelOpen(false)}
       />
 
-      {/* Translation Panel */}
       <TranslationPanel
         isOpen={translationPanelOpen}
-        message={selectedTranslationMessage}
-        translation={currentTranslation}
-        isLoading={isTranslating}
-        learningLanguage={learningLanguage}
         onClose={() => {
           setTranslationPanelOpen(false);
-          setSelectedTranslationMessage(null);
-          setCurrentTranslation(null);
+          resetTranslation();
         }}
+        message={selectedTranslationMessage}
+        translation={translationData?.translatedText ?? null}
+        isLoading={isTranslating}
+        isError={isTranslationError}
+        learningLanguage={learningLanguage}
       />
     </div>
   );

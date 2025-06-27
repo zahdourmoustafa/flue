@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 export async function POST(request: NextRequest) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const { conversationHistory = [] } = await request.json();
 
     // Validate OpenAI API key
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
       console.log("❌ OpenAI API key not configured");
       return NextResponse.json(
         { error: "AI service not configured" },
