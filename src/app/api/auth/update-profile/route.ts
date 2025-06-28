@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { user, userStats } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,21 +22,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build update object with only provided fields
-    const updateData: any = {
-      updatedAt: new Date(),
-    };
+    await db.transaction(async (tx) => {
+      // Build update object with only provided fields
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
 
-    if (learningLanguage !== undefined)
-      updateData.learningLanguage = learningLanguage;
-    if (languageLevel !== undefined) updateData.languageLevel = languageLevel;
-    if (preferredLanguage !== undefined)
-      updateData.preferredLanguage = preferredLanguage;
-    if (translationLanguage !== undefined)
-      updateData.translationLanguage = translationLanguage;
+      if (learningLanguage !== undefined)
+        updateData.learningLanguage = learningLanguage;
+      if (languageLevel !== undefined) updateData.languageLevel = languageLevel;
+      if (preferredLanguage !== undefined)
+        updateData.preferredLanguage = preferredLanguage;
+      if (translationLanguage !== undefined)
+        updateData.translationLanguage = translationLanguage;
 
-    // Update user with provided fields
-    await db.update(user).set(updateData).where(eq(user.id, userId));
+      // Update user with provided fields
+      await tx.update(user).set(updateData).where(eq(user.id, userId));
+
+      // Create a userStats entry if it doesn't exist
+      await tx
+        .insert(userStats)
+        .values({
+          id: uuidv4(),
+          userId,
+        })
+        .onConflictDoNothing();
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

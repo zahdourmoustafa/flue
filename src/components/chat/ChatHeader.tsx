@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Volume2, MoreVertical } from "lucide-react";
+import { ArrowLeft, Volume2, MoreVertical, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -10,8 +10,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-export function ChatHeader() {
+interface ChatHeaderProps {
+  isLoading: boolean;
+  onNewChat: () => void;
+  className?: string;
+}
+
+export function ChatHeader({
+  isLoading,
+  onNewChat,
+  className,
+}: ChatHeaderProps) {
   const router = useRouter();
 
   const handleGoBack = () => {
@@ -24,7 +35,12 @@ export function ChatHeader() {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+    <div
+      className={cn(
+        "flex items-center justify-between p-4 border-b border-gray-200 bg-white",
+        className
+      )}
+    >
       {/* Left Side - Back Button and Emma Profile */}
       <div className="flex items-center gap-3">
         <Button
@@ -32,6 +48,7 @@ export function ChatHeader() {
           size="icon"
           onClick={handleGoBack}
           className="hover:bg-gray-100"
+          disabled={isLoading}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -60,20 +77,31 @@ export function ChatHeader() {
           size="icon"
           onClick={handleVolumeToggle}
           className="hover:bg-gray-100"
+          disabled={isLoading}
         >
           <Volume2 className="h-5 w-5" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-gray-100"
+              disabled={isLoading}
+            >
               <MoreVertical className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Clear conversation</DropdownMenuItem>
-            <DropdownMenuItem>Download transcript</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem onClick={onNewChat} disabled={isLoading}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              New Chat
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isLoading}>
+              Download transcript
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isLoading}>Settings</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

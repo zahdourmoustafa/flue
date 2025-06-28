@@ -33,8 +33,41 @@ export const user = pgTable("user", {
     .notNull(),
 });
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userStats = pgTable("user_stats", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" })
+    .unique(),
+  currentLevel: integer("current_level").default(1).notNull(),
+  nextLevel: integer("next_level").default(2).notNull(),
+  minutesLeft: integer("minutes_left").default(0).notNull(),
+  progressPercentage: integer("progress_percentage").default(0).notNull(),
+  totalMinutes: integer("total_minutes").default(0).notNull(),
+  achievements: integer("achievements").default(0).notNull(),
+  streakDays: integer("streak_days").default(0).notNull(),
+  lessonsCompleted: integer("lessons_completed").default(0).notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const userRelations = relations(user, ({ many, one }) => ({
   conversations: many(conversations),
+  stats: one(userStats, {
+    fields: [user.id],
+    references: [userStats.userId],
+  }),
+}));
+
+export const userStatsRelations = relations(userStats, ({ one }) => ({
+  user: one(user, {
+    fields: [userStats.userId],
+    references: [user.id],
+  }),
 }));
 
 export const conversations = pgTable("conversations", {

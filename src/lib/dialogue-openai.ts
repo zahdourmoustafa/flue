@@ -41,6 +41,20 @@ export function createDialogueSystemPrompt(
 
 CONTEXT: ${dialogueConfig.context}
 
+CRITICAL CONVERSATION RULES:
+1. Keep responses VERY SHORT: Maximum 1-2 sentences
+2. PROGRESS the conversation naturally - don't repeat the same topics
+3. If the same topic has been discussed, introduce NEW related topics
+4. Ask different types of questions to keep it interesting
+5. Act naturally as ${dialogueConfig.aiPersona.name} would in real life
+6. Use simple vocabulary appropriate for language learners
+
+CONVERSATION PROGRESSION:
+- Start with basics, then naturally move to related topics
+- Vary your questions and responses
+- Don't get stuck on one item or topic
+- Think about what would happen next in a real conversation
+
 For error correction, you should identify:
 - Spelling mistakes
 - Grammar errors
@@ -49,7 +63,8 @@ For error correction, you should identify:
 - Vocabulary usage issues
 
 Remember: You are ${dialogueConfig.aiPersona.name}, a ${dialogueConfig.aiPersona.role}. 
-Stay in character throughout the conversation while being helpful with language learning.`;
+Stay in character throughout the conversation while being helpful with language learning.
+MOST IMPORTANT: Keep responses SHORT and PROGRESS the conversation naturally.`;
 }
 
 /**
@@ -74,14 +89,10 @@ export async function generateDialogueInitialMessage(
         },
         {
           role: "user",
-          content: `Please start this ${dialogueConfig.title.toLowerCase()} scenario. You should introduce yourself as ${
-            dialogueConfig.aiPersona.name
-          } and begin the conversation naturally according to your role as ${
-            dialogueConfig.aiPersona.role
-          }.`,
+          content: `Start this ${dialogueConfig.title.toLowerCase()} scenario naturally. Be brief and welcoming. Maximum 1-2 sentences.`,
         },
       ],
-      max_tokens: 150,
+      max_tokens: 60, // Reduced from 150 to force shorter initial messages
       temperature: 0.7,
     });
 
@@ -119,8 +130,8 @@ export async function processDialogueUserMessage(
       { role: "system", content: systemPrompt },
     ];
 
-    // Add conversation history (keep last 8 messages for context)
-    const recentHistory = conversationHistory.slice(-8);
+    // Add conversation history (keep last 6 messages for context)
+    const recentHistory = conversationHistory.slice(-6);
     recentHistory.forEach((msg) => {
       messages.push({
         role: msg.role,
@@ -134,12 +145,12 @@ export async function processDialogueUserMessage(
       content: userMessage,
     });
 
-    // Get AI response
+    // Get AI response with stricter constraints
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages,
-      max_tokens: 300,
-      temperature: 0.8, // Slightly higher for more natural dialogue
+      max_tokens: 100, // Reduced from 300 to force shorter responses
+      temperature: 0.7,
     });
 
     const aiResponse = completion.choices[0]?.message?.content;
@@ -275,53 +286,38 @@ export async function generateDialogueSuggestedAnswer(
 
   const fullLanguageName = languageMap[learningLanguage] || learningLanguage;
 
-  const systemPrompt = `You are a helpful language learning assistant for a ${dialogueConfig.title.toLowerCase()} scenario.
+  const systemPrompt = `You are responding as a language learner in a ${dialogueConfig.title.toLowerCase()} scenario.
 
 CONTEXT: ${dialogueConfig.context}
-SCENARIO: The student is practicing ${dialogueConfig.title.toLowerCase()}
-AI ROLE: The AI is acting as ${dialogueConfig.aiPersona.name}, a ${
+YOUR ROLE: You are the customer/person in this ${dialogueConfig.title.toLowerCase()} situation
+AI'S ROLE: ${dialogueConfig.aiPersona.name} is a ${
     dialogueConfig.aiPersona.role
   }
 
-Generate a realistic response in ${fullLanguageName} that a language learner might give in this scenario.
+CRITICAL INSTRUCTIONS:
+- Respond ONLY with what the learner should say - NO meta-commentary
+- NO phrases like "Sure, it's a good response" or "Here's what you could say"
+- Give DIRECT dialogue that fits the scenario naturally
+- Keep it short: 1-2 sentences maximum
+- Use beginner-intermediate ${fullLanguageName} vocabulary
+- Sound natural for this specific situation
 
-Guidelines:
-- Keep responses appropriate for the ${dialogueConfig.title.toLowerCase()} context
-- Use vocabulary suitable for a language learner (beginner-intermediate level)
-- Make it natural and conversational for this specific scenario
-- Consider what a real person would say in this situation
-- Response should be 1-3 sentences long
+AI just said: "${aiQuestion}"
 
-AI's question/statement: "${aiQuestion}"
-
-Generate a good example response that fits this dialogue scenario.`;
+Respond directly as the learner would in this conversation:`;
 
   try {
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-    ];
-
-    // Add recent conversation context
-    if (conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-4);
-      recentHistory.forEach((msg) => {
-        messages.push({
-          role: msg.role,
-          content: msg.content,
-        });
-      });
-    }
-
-    messages.push({
-      role: "user",
-      content: `Please suggest a good response for a language learner in this ${dialogueConfig.title.toLowerCase()} scenario.`,
-    });
-
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      messages,
-      max_tokens: 150,
-      temperature: 0.7,
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: "What should I say in response?",
+        },
+      ],
+      max_tokens: 80, // Reduced to force shorter suggestions
+      temperature: 0.6,
     });
 
     const suggestedAnswer = completion.choices[0]?.message?.content?.trim();
@@ -330,7 +326,16 @@ Generate a good example response that fits this dialogue scenario.`;
       throw new Error("Failed to generate suggested answer");
     }
 
-    return suggestedAnswer;
+    // Remove any meta-commentary that might slip through
+    const cleanAnswer = suggestedAnswer
+      .replace(
+        /^(Sure,?|Here's what you could say:?|You could respond:?|A good response would be:?)/i,
+        ""
+      )
+      .replace(/^(It's a good response for.*?\.)/i, "")
+      .trim();
+
+    return cleanAnswer || suggestedAnswer;
   } catch (error) {
     console.error("Error generating dialogue suggested answer:", error);
     throw error;

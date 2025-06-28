@@ -23,12 +23,25 @@ interface UserData {
   updatedAt?: Date;
 }
 
+interface UserStats {
+  currentLevel: number;
+  nextLevel: number;
+  minutesLeft: number;
+  progressPercentage: number;
+  totalMinutes: number;
+  achievements: number;
+  streakDays: number;
+  lessonsCompleted: number;
+}
+
 interface AuthContextType {
   user: UserData | null;
+  stats: UserStats | null;
   loading: boolean;
   error: string | null;
   refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<UserData>) => void;
+  updateStats: (updates: Partial<UserStats>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,35 +60,50 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<UserData | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Cache key for localStorage
   const CACHE_KEY = "fluentzy_user_session";
+  const STATS_CACHE_KEY = "fluentzy_user_stats";
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   // Load from cache if available and not expired
-  const loadFromCache = (): UserData | null => {
-    if (typeof window === "undefined") return null;
+  const loadFromCache = (): {
+    user: UserData | null;
+    stats: UserStats | null;
+  } => {
+    if (typeof window === "undefined") return { user: null, stats: null };
 
     try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          return data;
+      const cachedUser = localStorage.getItem(CACHE_KEY);
+      const cachedStats = localStorage.getItem(STATS_CACHE_KEY);
+
+      if (cachedUser && cachedStats) {
+        const { data: userData, timestamp: userTimestamp } =
+          JSON.parse(cachedUser);
+        const { data: statsData, timestamp: statsTimestamp } =
+          JSON.parse(cachedStats);
+
+        if (
+          Date.now() - userTimestamp < CACHE_DURATION &&
+          Date.now() - statsTimestamp < CACHE_DURATION
+        ) {
+          return { user: userData, stats: statsData };
         } else {
           localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(STATS_CACHE_KEY);
         }
       }
     } catch (error) {
       console.warn("Failed to load session from cache:", error);
     }
-    return null;
+    return { user: null, stats: null };
   };
 
   // Save to cache
-  const saveToCache = (userData: UserData) => {
+  const saveToCache = (userData: UserData, statsData: UserStats) => {
     if (typeof window === "undefined") return;
 
     try {
@@ -83,6 +111,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         CACHE_KEY,
         JSON.stringify({
           data: userData,
+          timestamp: Date.now(),
+        })
+      );
+      localStorage.setItem(
+        STATS_CACHE_KEY,
+        JSON.stringify({
+          data: statsData,
           timestamp: Date.now(),
         })
       );
@@ -95,6 +130,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const clearCache = () => {
     if (typeof window === "undefined") return;
     localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(STATS_CACHE_KEY);
   };
 
   const fetchUser = async (useCache = true) => {
@@ -103,9 +139,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       // Try cache first if enabled
       if (useCache) {
-        const cachedUser = loadFromCache();
-        if (cachedUser) {
+        const { user: cachedUser, stats: cachedStats } = loadFromCache();
+        if (cachedUser && cachedStats) {
           setUser(cachedUser);
+          setStats(cachedStats);
           setLoading(false);
           return;
         }
@@ -116,15 +153,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (session.data?.user) {
         const userData = session.data.user as UserData;
         setUser(userData);
-        saveToCache(userData);
+
+        // Fetch stats
+        const statsResponse = await fetch("/api/user/stats");
+        if (!statsResponse.ok) {
+          throw new Error("Failed to fetch user stats");
+        }
+        const statsData = await statsResponse.json();
+        setStats(statsData);
+
+        saveToCache(userData, statsData);
       } else {
         setUser(null);
+        setStats(null);
         clearCache();
       }
     } catch (err) {
       console.error("Error fetching user session:", err);
       setError("Failed to load user session");
       setUser(null);
+      setStats(null);
       clearCache();
     } finally {
       setLoading(false);
@@ -140,7 +188,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
-      saveToCache(updatedUser);
+      if (stats) {
+        saveToCache(updatedUser, stats);
+      }
+    }
+  };
+
+  const updateStats = (updates: Partial<UserStats>) => {
+    if (stats) {
+      const updatedStats = { ...stats, ...updates };
+      setStats(updatedStats);
+      if (user) {
+        saveToCache(user, updatedStats);
+      }
     }
   };
 
@@ -150,10 +210,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const value: AuthContextType = {
     user,
+    stats,
     loading,
     error,
     refreshUser,
     updateUser,
+    updateStats,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

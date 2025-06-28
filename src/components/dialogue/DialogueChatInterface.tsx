@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { ChatHeader } from "../chat/ChatHeader";
 import { MessageList } from "../chat/MessageList";
-import { ChatInput } from "../chat/ChatInput";
-import { TopicSuggestions } from "../chat/TopicSuggestions";
 import { ErrorFeedbackPanel } from "../chat/ErrorFeedbackPanel";
 import { TranslationPanel } from "../chat/TranslationPanel";
-import { TTSControl } from "../chat/TTSControl";
 import { SpeechPracticeInterface } from "./SpeechPracticeInterface";
 import { type Message, type ChatSession } from "@/types/chat";
+import { type ChatStartResponse } from "@/types/api";
 import { type DialogueScenario } from "@/types/dialogue";
 import {
   useDialogueChatStart,
@@ -48,6 +46,7 @@ export function DialogueChatInterface({
   const [currentTranslation, setCurrentTranslation] = useState<string | null>(
     null
   );
+  const [translationError, setTranslationError] = useState<boolean>(false);
   const [conversationHistory, setConversationHistory] = useState<
     ConversationMessage[]
   >([]);
@@ -60,7 +59,7 @@ export function DialogueChatInterface({
   // Use React Query for dialogue initialization
   const {
     data: chatData,
-    isLoading: isInitializing,
+    isPending: isInitializing,
     error: initError,
     refetch: retryInit,
   } = useDialogueChatStart(scenarioConfig.id);
@@ -68,20 +67,20 @@ export function DialogueChatInterface({
   // Use React Query for sending messages
   const {
     mutate: sendMessage,
-    isLoading: isSending,
+    isPending: isSending,
     error: sendError,
   } = useDialogueChatMessage();
 
   // Use React Query for suggesting answers
-  const { mutate: suggestAnswer, isLoading: isGeneratingSuggestion } =
+  const { mutate: suggestAnswer, isPending: isGeneratingSuggestion } =
     useDialogueSuggestAnswer();
 
   // Use React Query for translation
-  const { mutate: translateMessage, isLoading: isTranslating } =
+  const { mutate: translateMessage, isPending: isTranslating } =
     useTranslation();
 
   // Use React Query for another question
-  const { mutate: generateAnotherQuestion, isLoading: isGeneratingQuestion } =
+  const { mutate: generateAnotherQuestion, isPending: isGeneratingQuestion } =
     useAnotherQuestion();
 
   // Use Text-to-Speech hook
@@ -121,7 +120,7 @@ export function DialogueChatInterface({
         updatedAt: new Date(),
       });
 
-      const initialHistory = [
+      const initialHistory: ConversationMessage[] = [
         { role: "assistant", content: chatData.initialMessage },
       ];
       setConversationHistory(initialHistory);
@@ -139,13 +138,20 @@ export function DialogueChatInterface({
       );
 
       // Auto-generate suggestion for the first response immediately after session is set
-      generateSuggestionWithHistory(chatData.initialMessage, initialHistory);
+      generateSuggestionWithHistory(
+        chatData.initialMessage,
+        initialHistory as ConversationMessage[]
+      );
 
       // Speak the initial AI message and then set flag to auto-play suggestion
-      speakMessage(chatData.initialMessage, chatData.learningLanguage, () => {
-        // Set flag to auto-play suggestion when it becomes available
-        setShouldAutoPlaySuggestion(true);
-      });
+      speakMessage(
+        chatData.initialMessage,
+        chatData.learningLanguage as "en" | "es",
+        () => {
+          // Set flag to auto-play suggestion when it becomes available
+          setShouldAutoPlaySuggestion(true);
+        }
+      );
     }
   }, [chatData, speakMessage, scenarioConfig.title]);
 
@@ -153,7 +159,7 @@ export function DialogueChatInterface({
   useEffect(() => {
     if (shouldAutoPlaySuggestion && currentSuggestion) {
       setTimeout(() => {
-        speakMessage(currentSuggestion, learningLanguage);
+        speakMessage(currentSuggestion, learningLanguage as "en" | "es");
         setShouldAutoPlaySuggestion(false);
       }, 200);
     }
@@ -226,7 +232,7 @@ export function DialogueChatInterface({
             ...userMessage,
             hasErrors: response.hasErrors,
             correctedMessage: response.correctedMessage,
-            correctionExplanation: response.explanation,
+            explanation: response.explanation,
           };
 
           // Update messages
@@ -249,10 +255,14 @@ export function DialogueChatInterface({
           setLastAiMessage(response.aiResponse);
 
           // Speak AI response and then auto-play suggestion
-          speakMessage(response.aiResponse, learningLanguage, () => {
-            // Set flag to auto-play suggestion when it becomes available
-            setShouldAutoPlaySuggestion(true);
-          });
+          speakMessage(
+            response.aiResponse,
+            learningLanguage as "en" | "es",
+            () => {
+              // Set flag to auto-play suggestion when it becomes available
+              setShouldAutoPlaySuggestion(true);
+            }
+          );
 
           // Auto-generate suggestion for the response
           setTimeout(() => {
@@ -341,32 +351,67 @@ export function DialogueChatInterface({
   const handleRepeatAudio = (messageId: string) => {
     const message = messages.find((msg) => msg.id === messageId);
     if (message && message.originalMessage) {
-      speakMessage(message.originalMessage, learningLanguage);
+      speakMessage(message.originalMessage, learningLanguage as "en" | "es");
     }
   };
 
-  const handleTranslate = (messageId: string) => {
-    const message = messages.find((msg) => msg.id === messageId);
+  const handlePlayPronunciation = (audioUrl: string) => {
+    // This function handles pronunciation playback for user messages
+    // In dialogue mode, we might not have audio URLs, but we can still implement this
+    console.log("🔊 Playing pronunciation for audio URL:", audioUrl);
+    // For now, this is a placeholder - you can implement actual audio playback if needed
+  };
+
+  const handleTranslate = (message: Message) => {
     if (!message) return;
 
-    // Determine target language based on learning language
-    const targetLanguage = learningLanguage === "en" ? "es" : "en";
+    // Reset translation error state
+    setTranslationError(false);
+
+    // Language mapping for better display names
+    const languageMap: Record<string, string> = {
+      en: "English",
+      es: "Spanish",
+      fr: "French",
+      de: "German",
+      it: "Italian",
+      pt: "Portuguese",
+    };
+
+    // Determine source and target languages
+    const sourceLang = learningLanguage;
+    const targetLang = learningLanguage === "en" ? "es" : "en"; // Default fallback to Spanish/English
+
+    const sourceLanguageName = languageMap[sourceLang] || sourceLang;
+    const targetLanguageName = languageMap[targetLang] || targetLang;
+
+    console.log("🌐 Translating message:", {
+      messageId: message.id,
+      text: message.originalMessage,
+      from: sourceLanguageName,
+      to: targetLanguageName,
+    });
 
     translateMessage(
       {
         text: message.originalMessage,
-        from: learningLanguage === "en" ? "English" : "Spanish",
-        to: learningLanguage === "en" ? "Spanish" : "English",
+        from: sourceLanguageName,
+        to: targetLanguageName,
       },
       {
         onSuccess: (response) => {
-          console.log("Translation response:", response);
+          console.log("✅ Translation successful:", response);
           setSelectedTranslationMessage(message);
-          setCurrentTranslation(response.data.translation);
+          setCurrentTranslation(response.translatedText); // Fixed: use translatedText instead of response.data.translation
           setTranslationPanelOpen(true);
+          setTranslationError(false);
         },
         onError: (error) => {
-          console.error("❌ Failed to translate:", error);
+          console.error("❌ Translation failed:", error);
+          setTranslationError(true);
+          setSelectedTranslationMessage(message);
+          setCurrentTranslation(null);
+          setTranslationPanelOpen(true);
           toast.error("Failed to translate message. Please try again.");
         },
       }
@@ -462,8 +507,7 @@ export function DialogueChatInterface({
           onErrorIconClick={handleErrorIconClick}
           onRepeatAudio={handleRepeatAudio}
           onTranslate={handleTranslate}
-          isSpeaking={isSpeaking}
-          onStopSpeaking={stopSpeaking}
+          onPlayPronunciation={handlePlayPronunciation}
         />
 
         <div className="bg-white/50 backdrop-blur-sm">
@@ -502,6 +546,7 @@ export function DialogueChatInterface({
         message={selectedTranslationMessage}
         translation={currentTranslation}
         isLoading={isTranslating}
+        isError={translationError}
         learningLanguage={learningLanguage}
       />
     </div>
