@@ -117,7 +117,11 @@ export function SpeechPracticeInterface({
   };
 
   const handlePlaySuggestion = () => {
-    speakMessage(suggestedResponse, learningLanguage);
+    if (learningLanguage === "en" || learningLanguage === "es") {
+      speakMessage(suggestedResponse, learningLanguage);
+    } else {
+      toast.error("Speech is not available for this language.");
+    }
   };
 
   const handleRetry = () => {

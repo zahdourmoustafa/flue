@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   type ApiResponse,
@@ -22,8 +26,10 @@ export interface DialogueChatMessageParams {
   }>;
 }
 
-export function useDialogueChatStart(scenarioId: string) {
-  return useQuery({
+export function useDialogueChatStart(
+  scenarioId: string
+): UseQueryResult<ChatStartResponse, Error> {
+  return useQuery<ChatStartResponse, Error>({
     queryKey: ["dialogue-chat", "start", scenarioId],
     queryFn: async (): Promise<ChatStartResponse> => {
       console.log("🚀 Starting dialogue session for scenario:", scenarioId);

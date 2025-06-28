@@ -7,10 +7,12 @@ import { getDialogueConfig } from "@/lib/dialogue-config";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTimeTracker } from "@/hooks/useTimeTracker";
 
 export default function DialoguePracticePage() {
   const params = useParams();
   const scenarioId = params.scenarioId as string;
+  useTimeTracker("dialogue-mode");
 
   // Get the dialogue configuration
   const dialogueConfig = getDialogueConfig(scenarioId);

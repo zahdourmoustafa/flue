@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useTimeTracker } from "@/hooks/useTimeTracker";
 
 interface LessonPracticePageProps {
   params: {
@@ -15,6 +16,7 @@ interface LessonPracticePageProps {
 
 const LessonPracticePage = ({ params }: LessonPracticePageProps) => {
   const { user, loading } = useAuth();
+  useTimeTracker("sentence-mode");
 
   if (loading) {
     return <div>Loading...</div>;

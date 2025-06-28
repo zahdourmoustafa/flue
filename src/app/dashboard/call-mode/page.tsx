@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CallInterface } from "@/components/call-mode/CallInterface";
 import { useAuth } from "@/contexts/auth-context";
+import { useTimeTracker } from "@/hooks/useTimeTracker";
 
 const CallModePage = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  useTimeTracker("call-mode");
 
   useEffect(() => {
     if (!user) {

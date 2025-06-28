@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { VideoCallInterface } from "@/components/video-call/VideoCallInterface";
 import { VideoCallScenario } from "@/types/video-call";
+import { useTimeTracker } from "@/hooks/useTimeTracker";
 
 // Scenario data - in a real app, this would come from a database or API
 const SCENARIOS: Record<string, VideoCallScenario> = {
@@ -122,6 +123,7 @@ interface VideoCallPageProps {
 export default function VideoCallPage({ params }: VideoCallPageProps) {
   const { scenarioId } = params;
   const router = useRouter();
+  useTimeTracker("videocall-mode");
 
   const scenario = SCENARIOS[scenarioId];
 
