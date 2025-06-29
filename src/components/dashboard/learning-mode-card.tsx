@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, LucideIcon } from "lucide-react";
+import { ArrowRight, LucideIcon, Crown, Lock } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface LearningModeCardProps {
   id: string;
@@ -16,6 +17,8 @@ interface LearningModeCardProps {
   icon: LucideIcon;
   tags: string[];
   badge?: string;
+  isPremium?: boolean;
+  hasAccess?: boolean;
 }
 
 export const LearningModeCard: React.FC<LearningModeCardProps> = ({
@@ -27,14 +30,46 @@ export const LearningModeCard: React.FC<LearningModeCardProps> = ({
   icon: Icon,
   tags,
   badge,
+  isPremium = false,
+  hasAccess = true,
 }) => {
+  const { startSubscription, isCreatingCheckout } = useSubscription();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isPremium && !hasAccess) {
+      e.preventDefault();
+      startSubscription();
+    }
+  };
   return (
     <div className="h-full">
-      <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 overflow-hidden group hover:scale-105 cursor-pointer">
+      <Card
+        className={`h-full hover:shadow-2xl transition-all duration-500 border-0 overflow-hidden group hover:scale-105 cursor-pointer ${
+          isPremium && !hasAccess ? "relative" : ""
+        }`}
+      >
+        {/* Premium Overlay */}
+        {isPremium && !hasAccess && (
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] z-10 flex items-center justify-center">
+            <div className="text-center">
+              <Lock className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+              <Badge
+                variant="secondary"
+                className="bg-amber-100 text-amber-800 font-semibold"
+              >
+                <Crown className="w-3 h-3 mr-1" />
+                Premium
+              </Badge>
+            </div>
+          </div>
+        )}
+
         <CardContent className="p-0 h-full flex flex-col">
           {/* Header Section with Gradient */}
           <div
-            className={`relative h-40 bg-gradient-to-br ${color} overflow-hidden`}
+            className={`relative h-40 bg-gradient-to-br ${color} overflow-hidden ${
+              isPremium && !hasAccess ? "grayscale-[50%]" : ""
+            }`}
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-black/5" />
@@ -50,8 +85,13 @@ export const LearningModeCard: React.FC<LearningModeCardProps> = ({
                 {badge && (
                   <Badge
                     variant="secondary"
-                    className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-0"
+                    className={`backdrop-blur-sm text-white hover:bg-white/30 border-0 ${
+                      badge === "Premium"
+                        ? "bg-amber-500/90 hover:bg-amber-600/90"
+                        : "bg-white/20"
+                    }`}
                   >
+                    {badge === "Premium" && <Crown className="w-3 h-3 mr-1" />}
                     {badge}
                   </Badge>
                 )}
@@ -83,15 +123,32 @@ export const LearningModeCard: React.FC<LearningModeCardProps> = ({
             </div>
 
             {/* CTA Button */}
-            <Link href={href} className="block">
+            {hasAccess ? (
+              <Link href={href} className="block">
+                <Button
+                  className="w-full group-hover:bg-gray-900 group-hover:text-white transition-all duration-300 bg-gray-50 text-gray-700 hover:bg-gray-100 border-0 shadow-sm"
+                  variant="outline"
+                >
+                  <span>Start Learning</span>
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
+              </Link>
+            ) : (
               <Button
-                className="w-full group-hover:bg-gray-900 group-hover:text-white transition-all duration-300 bg-gray-50 text-gray-700 hover:bg-gray-100 border-0 shadow-sm"
-                variant="outline"
+                onClick={handleClick}
+                disabled={isCreatingCheckout}
+                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white border-0 shadow-sm"
               >
-                <span>Start Learning</span>
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                {isCreatingCheckout ? (
+                  <span>Loading...</span>
+                ) : (
+                  <>
+                    <Crown className="w-4 h-4 mr-2" />
+                    <span>Upgrade to Premium</span>
+                  </>
+                )}
               </Button>
-            </Link>
+            )}
           </div>
         </CardContent>
       </Card>

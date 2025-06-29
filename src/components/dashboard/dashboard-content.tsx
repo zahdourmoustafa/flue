@@ -5,6 +5,7 @@ import { WelcomeCard } from "./welcome-card";
 import { ProgressCard } from "./progress-card";
 import { StatsCard } from "./stats-card";
 import { LearningModesSection } from "./learning-modes-section";
+import { SubscriptionStatus } from "@/components/subscription/subscription-status";
 
 interface DashboardContentProps {
   userName: string;
@@ -51,6 +52,8 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             <WelcomeCard userName={userName} />
+
+            <SubscriptionStatus />
 
             <ProgressCard
               currentLevel={userStats.currentLevel}

@@ -61,6 +61,10 @@ export const userRelations = relations(user, ({ many, one }) => ({
     fields: [user.id],
     references: [userStats.userId],
   }),
+  subscription: one(subscriptions, {
+    fields: [user.id],
+    references: [subscriptions.userId],
+  }),
 }));
 
 export const userStatsRelations = relations(userStats, ({ one }) => ({
@@ -311,6 +315,48 @@ export const callSessions = pgTable("call_sessions", {
 export const callSessionsRelations = relations(callSessions, ({ one }) => ({
   user: one(user, {
     fields: [callSessions.userId],
+    references: [user.id],
+  }),
+}));
+
+// Subscription Tables
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "active",
+  "canceled",
+  "incomplete",
+  "incomplete_expired",
+  "past_due",
+  "trialing",
+  "unpaid",
+]);
+
+export const subscriptions = pgTable("subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" })
+    .unique(),
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  stripePriceId: text("stripe_price_id"),
+  status: subscriptionStatusEnum("status").notNull().default("incomplete"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  canceledAt: timestamp("canceled_at"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+});
+
+export const subscriptionRelations = relations(subscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [subscriptions.userId],
     references: [user.id],
   }),
 }));
