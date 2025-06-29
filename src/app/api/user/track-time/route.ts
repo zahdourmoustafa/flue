@@ -3,29 +3,70 @@ import { db } from "@/db";
 import { userStats } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { getAuthenticatedUser } from "@/lib/server-auth";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
   try {
     const user = await getAuthenticatedUser();
-    const { duration } = await request.json();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { duration, feature } = await request.json();
 
     if (typeof duration !== "number" || duration < 0) {
       return NextResponse.json({ error: "Invalid duration" }, { status: 400 });
     }
 
+    if (duration < 1) {
+      return NextResponse.json({
+        success: true,
+        message: "Time too short to track",
+      });
+    }
+
     const durationInMinutes = Math.ceil(duration / 60);
 
-    await db
-      .update(userStats)
-      .set({
-        totalMinutes: sql`${userStats.totalMinutes} + ${durationInMinutes}`,
-        updatedAt: new Date(),
-      })
-      .where(eq(userStats.userId, user.id));
+    const existingStats = await db.query.userStats.findFirst({
+      where: eq(userStats.userId, user.id),
+    });
 
-    return NextResponse.json({ success: true });
+    if (existingStats) {
+      await db
+        .update(userStats)
+        .set({
+          totalMinutes: sql`${userStats.totalMinutes} + ${durationInMinutes}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(userStats.userId, user.id));
+    } else {
+      await db.insert(userStats).values({
+        id: uuidv4(),
+        userId: user.id,
+        totalMinutes: durationInMinutes,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    console.log(
+      `Time tracked for user ${user.id}: ${durationInMinutes} minutes in ${
+        feature || "unknown"
+      } mode`
+    );
+
+    return NextResponse.json({
+      success: true,
+      tracked: {
+        minutes: durationInMinutes,
+        feature: feature || "unknown",
+      },
+    });
   } catch (error) {
-    if ((error as Error).message.includes("User not authenticated")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("User not authenticated")
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Error tracking time:", error);

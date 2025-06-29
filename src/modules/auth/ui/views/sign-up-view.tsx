@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -14,13 +13,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { OnboardingData } from "@/types/onboarding";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -139,209 +145,193 @@ export const SignUpView = ({
     setShowPassword(!showPassword);
   };
 
+  const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+      role="img"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.3 1.63-4.51 1.63-3.86 0-7-3.14-7-7s3.14-7 7-7c1.73 0 3.26.59 4.47 1.74l2.5-2.5C18.16 3.59 15.63 2 12.48 2 7.1 2 3.22 5.89 3.22 10.92s3.88 8.92 9.26 8.92c2.73 0 4.88-1.02 6.62-2.73 1.84-1.84 2.36-4.29 2.36-6.51 0-.6-.05-1.19-.16-1.73l-8.44.01z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden p-0">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <div className="p-6 md:p-8">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(handleSubmit)}
-                className="space-y-6"
-              >
-                <div className="flex flex-col items-center text-center">
-                  {onBack && (
-                    <div className="flex items-center justify-between w-full mb-4">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={onBack}
-                        aria-label="Go back to level selection"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                      <h1 className="text-2xl font-bold">Almost there!</h1>
-                      <div className="w-8" />{" "}
-                      {/* Spacer for center alignment */}
-                    </div>
-                  )}
-                  {!onBack && (
-                    <h1 className="text-2xl font-bold">Let's get started</h1>
-                  )}
-                  <p className="text-muted-foreground text-balance">
-                    {onboardingData?.selectedLanguage
-                      ? `Just a bit more info to set up your ${onboardingData.selectedLanguage.name} account.`
-                      : "Create your account"}
-                  </p>
-                </div>
+    <Card>
+      <CardHeader>
+        {onBack && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="mb-6 text-gray-600 hover:text-gray-900 w-fit"
+            aria-label="Go back to level selection"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        )}
+        <div className="text-center">
+          <CardTitle className="text-2xl font-semibold text-gray-900">
+            {onBack ? "Almost there!" : "Sign up"}
+          </CardTitle>
+          <CardDescription>
+            {onboardingData?.selectedLanguage
+              ? `Just a bit more info to set up your ${onboardingData.selectedLanguage.name} learning account.`
+              : "Create your account to start learning"}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleSignUp}
+            className="w-full flex items-center justify-center gap-3"
+            aria-label="Continue with Google"
+            disabled={isGoogleLoading}
+          >
+            <GoogleIcon className="h-5 w-5" />
+            {isGoogleLoading ? "Creating account..." : "Continue with Google"}
+          </Button>
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="John Doe"
-                            {...field}
-                            aria-label="Full name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="m@example.com"
-                            {...field}
-                            aria-label="Email address"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? "text" : "password"}
-                              placeholder="••••••••"
-                              {...field}
-                              aria-label="Password"
-                              className="pr-10"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                              onClick={togglePasswordVisibility}
-                              aria-label={
-                                showPassword ? "Hide password" : "Show password"
-                              }
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-black hover:bg-gray-800 text-white"
-                  aria-label="Create your account"
-                  disabled={form.formState.isSubmitting}
-                >
-                  {form.formState.isSubmitting
-                    ? "Creating account..."
-                    : "Sign up"}
-                </Button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-
-                <div className="w-full">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleGoogleSignUp}
-                    className="w-full"
-                    aria-label="Continue with Google"
-                    disabled={isGoogleLoading}
-                  >
-                    {isGoogleLoading ? "Creating account..." : "Google"}
-                  </Button>
-                </div>
-
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Already have an account?{" "}
-                    <Link
-                      href="/sign-in"
-                      className="underline underline-offset-4 hover:text-primary"
-                      aria-label="Sign in to your existing account"
-                    >
-                      Sign in
-                    </Link>
-                  </p>
-                </div>
-              </form>
-            </Form>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-600 to-green-800 relative hidden md:flex flex-col gap-y-4 items-center justify-center">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center">
-              <div className="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center">
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-              </div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300" />
             </div>
-            <p className="text-2xl font-semibold text-white">Fluentzy.AI</p>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-gray-500 uppercase tracking-wide">
+                OR
+              </span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">
-          By clicking continue, you agree to our{" "}
-          <Link
-            href="/terms"
-            className="underline underline-offset-4 hover:text-primary"
-            aria-label="Read our Terms of Service"
-          >
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link
-            href="/privacy"
-            className="underline underline-offset-4 hover:text-primary"
-            aria-label="Read our Privacy Policy"
-          >
-            Privacy Policy
-          </Link>
-        </p>
-      </div>
-    </div>
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-medium">
+                      Name
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="John Doe"
+                        {...field}
+                        aria-label="Full name"
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-medium">
+                      Email
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="m@example.com"
+                        {...field}
+                        aria-label="Email address"
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-medium">
+                      Password
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          {...field}
+                          aria-label="Password"
+                          className="pr-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={togglePasswordVisibility}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={form.formState.isSubmitting}
+                size="lg"
+              >
+                {form.formState.isSubmitting
+                  ? "Creating account..."
+                  : "Sign up"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center text-sm text-gray-600">
+            <p>
+              Already have an account?{" "}
+              <Link
+                href="/sign-in"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
