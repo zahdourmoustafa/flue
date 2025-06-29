@@ -15,6 +15,17 @@ export const HeroSection = () => {
       {/* Background decoration */}
       <div className="absolute inset-0 bg-white/5 bg-gradient-to-tr from-transparent via-white/10 to-transparent"></div>
 
+      {/* Badge in top-right corner of red zone */}
+      <div className="absolute top-8 right-8 z-20">
+        <Image
+          src="/badge.png"
+          alt="Badge"
+          width={100}
+          height={100}
+
+        />
+      </div>
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex flex-col lg:flex-row items-center">
           <div className="lg:w-1/2 text-center lg:text-left">
