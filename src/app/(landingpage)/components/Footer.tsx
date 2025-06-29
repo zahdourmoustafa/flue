@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Zap, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
 import Link from "next/link";
 
@@ -71,8 +72,6 @@ export const Footer = () => {
             </div>
           ))}
         </div>
-
-
 
         {/* Bottom footer */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
