@@ -42,6 +42,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<UserData>) => void;
   updateStats: (updates: Partial<UserStats>) => void;
+  clearSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -204,6 +205,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Clear session completely
+  const clearSession = async () => {
+    try {
+      // Clear local storage
+      clearCache();
+
+      // Clear auth client session
+      await authClient.signOut();
+
+      // Reset state
+      setUser(null);
+      setStats(null);
+      setError(null);
+      setLoading(false);
+
+      // Clear any other browser storage
+      if (typeof window !== "undefined") {
+        sessionStorage.clear();
+        // Clear any auth cookies
+        document.cookie.split(";").forEach((c) => {
+          const eqPos = c.indexOf("=");
+          const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        });
+      }
+    } catch (error) {
+      console.error("Error clearing session:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, []);
@@ -216,6 +247,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     refreshUser,
     updateUser,
     updateStats,
+    clearSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -62,6 +62,14 @@ export const SignUpView = ({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setError(null);
+
+      // Ensure no existing session before creating new account
+      try {
+        await authClient.signOut();
+      } catch (e) {
+        // Ignore errors if no session exists
+      }
+
       const result = await authClient.signUp.email({
         email: values.email,
         password: values.password,
@@ -129,6 +137,14 @@ export const SignUpView = ({
     try {
       setIsGoogleLoading(true);
       setError(null);
+
+      // Ensure no existing session before Google sign-up
+      try {
+        await authClient.signOut();
+      } catch (e) {
+        // Ignore errors if no session exists
+      }
+
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard", // Redirect after successful sign-up
