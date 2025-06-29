@@ -16,7 +16,11 @@ interface SentenceCardProps {
 export const SentenceCard = ({ sentence }: SentenceCardProps) => {
   const [showTranslation, setShowTranslation] = useState(false);
   const { user } = useAuth();
-  const { translation, isLoading, translate } = useTranslation();
+  const {
+    mutate: translate,
+    isPending: isLoading,
+    data: translationData,
+  } = useTranslation();
   const { speak, isPlaying, isLoading: ttsLoading } = useTextToSpeech();
 
   // Get dynamic translation when user requests it
@@ -24,7 +28,11 @@ export const SentenceCard = ({ sentence }: SentenceCardProps) => {
     if (showTranslation && user?.translationLanguage) {
       // Only translate if the target language is different from English
       if (user.translationLanguage !== "en") {
-        translate(sentence.text, user.translationLanguage, "en");
+        translate({
+          text: sentence.text,
+          from: "en",
+          to: user.translationLanguage,
+        });
       }
     }
   }, [showTranslation, user?.translationLanguage, sentence.text, translate]);
@@ -36,7 +44,7 @@ export const SentenceCard = ({ sentence }: SentenceCardProps) => {
     }
 
     // Use dynamic translation for other languages
-    return translation || sentence.translation;
+    return translationData?.translatedText || sentence.translation;
   };
 
   const handleListen = async () => {

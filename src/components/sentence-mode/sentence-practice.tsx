@@ -181,6 +181,10 @@ export const SentencePractice = ({
         return () => clearTimeout(autoplayTimer);
       }
     }
+
+    return () => {
+      // Cleanup function for when conditions are not met
+    };
   }, [currentIndex, loading, sentences, speak]);
 
   if (loading) {

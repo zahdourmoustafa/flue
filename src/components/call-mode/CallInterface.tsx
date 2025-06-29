@@ -90,6 +90,10 @@ export const CallInterface = ({ user }: CallInterfaceProps) => {
         clearTimeout(timer);
       };
     }
+
+    return () => {
+      // Cleanup function for when callState is not "ringing"
+    };
   }, [callState, connect]);
 
   // Call duration timer
@@ -247,7 +251,7 @@ export const CallInterface = ({ user }: CallInterfaceProps) => {
             state={callState}
             duration={callDuration}
             isConnected={isConnected}
-            error={error}
+            error={error || undefined}
           />
 
           {/* Call Controls */}

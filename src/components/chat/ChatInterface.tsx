@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { type ChatStartResponse } from "@/types/api";
 
 interface ConversationMessage {
   role: "user" | "assistant";
@@ -50,30 +51,35 @@ export function ChatInterface() {
     isLoading: isInitializing,
     error: initError,
     refetch: retryInit,
-  } = useChatStart();
+  } = useChatStart() as {
+    data: ChatStartResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
 
   // Use React Query for sending messages
   const {
     mutate: sendMessage,
-    isLoading: isSending,
+    isPending: isSending,
     error: sendError,
   } = useChatMessage();
 
   // Use React Query for suggesting answers
-  const { mutate: suggestAnswer, isLoading: isGeneratingSuggestion } =
+  const { mutate: suggestAnswer, isPending: isGeneratingSuggestion } =
     useSuggestAnswer();
 
   // Use React Query for translation
   const {
     mutate: translateMessage,
-    isLoading: isTranslating,
+    isPending: isTranslating,
     data: translationData,
     reset: resetTranslation,
     isError: isTranslationError,
   } = useTranslation();
 
   // Use React Query for another question
-  const { mutate: generateAnotherQuestion, isLoading: isGeneratingQuestion } =
+  const { mutate: generateAnotherQuestion, isPending: isGeneratingQuestion } =
     useAnotherQuestion();
 
   // Use Text-to-Speech hook
@@ -85,6 +91,11 @@ export function ChatInterface() {
 
   const { user } = useAuth();
   const learningLanguage = user?.learningLanguage ?? session?.language ?? "en";
+
+  // Helper function to ensure proper language typing for TTS
+  const getSafeLanguage = (lang: string): "es" | "en" => {
+    return lang === "es" ? "es" : "en";
+  };
 
   // Initialize chat when data is received
   useEffect(() => {
@@ -127,7 +138,10 @@ export function ChatInterface() {
       toast.success(`Welcome! Let's practice ${languageName} together!`);
 
       // Speak the initial AI message
-      speakMessage(chatData.initialMessage, chatData.learningLanguage);
+      speakMessage(
+        chatData.initialMessage,
+        getSafeLanguage(chatData.learningLanguage)
+      );
     }
   }, [chatData, speakMessage]);
 
@@ -211,7 +225,7 @@ export function ChatInterface() {
           ]);
 
           // Speak the AI response instantly
-          speakMessage(response.aiResponse, session.language);
+          speakMessage(response.aiResponse, getSafeLanguage(session.language));
         },
         onError: (error) => {
           console.error("❌ Failed to send message:", error);
@@ -289,7 +303,10 @@ export function ChatInterface() {
           toast.success("Emma has a new question for you!");
 
           // Speak the new question instantly
-          speakMessage(response.data.newQuestion, session.language);
+          speakMessage(
+            response.data.newQuestion,
+            getSafeLanguage(session.language)
+          );
         },
         onError: (error) => {
           console.error("❌ Failed to generate another question:", error);
@@ -368,7 +385,7 @@ export function ChatInterface() {
     }
 
     // Speak the message using TTS
-    speakMessage(message.originalMessage, session.language);
+    speakMessage(message.originalMessage, getSafeLanguage(session.language));
     toast.success("Playing audio...");
   };
 
@@ -458,7 +475,12 @@ export function ChatInterface() {
     <div className="flex h-full bg-white relative">
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        <ChatHeader />
+        <ChatHeader
+          isLoading={isInitializing || isSending}
+          onNewChat={() => {
+            window.location.reload();
+          }}
+        />
 
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* TTS Control - shows when Emma is speaking */}
@@ -468,19 +490,16 @@ export function ChatInterface() {
             messages={messages}
             isLoading={isSending}
             isAiTyping={isAiTyping}
-            onRetry={handleSendMessage}
             onErrorIconClick={handleErrorIconClick}
             onRepeatAudio={handleRepeatAudio}
             onTranslate={handleTranslate}
             onPlayPronunciation={handlePlayPronunciation}
-            isSpeaking={isSpeaking}
-            stopSpeaking={stopSpeaking}
           />
 
           {messages.length === 1 && (
             <TopicSuggestions
               onTopicSelect={handleTopicSelect}
-              learningLanguage={learningLanguage}
+              learningLanguage={getSafeLanguage(learningLanguage)}
             />
           )}
 

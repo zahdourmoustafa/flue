@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /api
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /(auth)
+
+# Host
+Host: https://fluentzy.com
+
+# Sitemaps
+Sitemap: https://fluentzy.com/sitemap.xml

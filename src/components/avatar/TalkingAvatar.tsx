@@ -158,7 +158,7 @@ export function TalkingAvatar({
           </div>
         )}
 
-        {showVideo && (
+        {showVideo && videoUrl && (
           <video
             ref={videoRef}
             src={videoUrl}

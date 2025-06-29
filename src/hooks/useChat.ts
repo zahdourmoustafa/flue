@@ -49,13 +49,7 @@ export function useChatStart(options: UseChatOptions = {}) {
     retry: 2,
     retryDelay: 1000,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    cacheTime: 1000 * 60 * 10, // 10 minutes
-    onError: (error) => {
-      console.error("🔥 Chat start error:", error);
-      toast.error(
-        "Failed to start chat. Please check your connection and try again."
-      );
-    },
+    gcTime: 1000 * 60 * 10, // 10 minutes
   });
 }
 
