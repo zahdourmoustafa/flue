@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { LANGUAGES } from "@/types/onboarding";
+import { ALL_LANGUAGES } from "@/types/onboarding";
 import { LanguageSelector } from "./language-selector";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
@@ -60,7 +60,8 @@ export const AccountSettings = () => {
         toast({
           title: "Language updated",
           description: `Your target language has been changed to ${
-            LANGUAGES.find((l) => l.code === languageCode)?.name || languageCode
+            ALL_LANGUAGES.find((l) => l.code === languageCode)?.name ||
+            languageCode
           }.`,
         });
       } else {
@@ -175,7 +176,7 @@ export const AccountSettings = () => {
         {/* Target Language Card */}
         <TargetLanguageCard
           userData={userData}
-          onLanguageSelectorOpen={() => setIsLanguageSelectorOpen(true)}
+          onTargetLanguageUpdate={handleLanguageSelect}
         />
 
         {/* Account Menu */}
@@ -222,6 +223,7 @@ export const AccountSettings = () => {
         userData={userData}
         onInterfaceLanguageUpdate={handleInterfaceLanguageUpdate}
         onTranslationLanguageUpdate={handleTranslationLanguageUpdate}
+        onTargetLanguageUpdate={handleLanguageSelect}
         onTargetLanguageClick={() => setIsLanguageSelectorOpen(true)}
       />
 

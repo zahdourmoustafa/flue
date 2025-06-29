@@ -10,18 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Check } from "lucide-react";
-
-interface Language {
-  code: string;
-  name: string;
-  flag: string;
-}
-
-// MVP languages only
-const MVP_LANGUAGES: Language[] = [
-  { code: "en", name: "English", flag: "🇬🇧" },
-  { code: "es", name: "Spanish", flag: "🇪🇸" },
-];
+import ReactCountryFlag from "react-country-flag";
+import { ALL_LANGUAGES } from "@/types/onboarding";
 
 interface LanguageSelectorProps {
   isOpen: boolean;
@@ -51,7 +41,7 @@ export const LanguageSelector = ({
   };
 
   const getCurrentLanguageName = () => {
-    const lang = MVP_LANGUAGES.find((l) => l.code === currentLanguage);
+    const lang = ALL_LANGUAGES.find((l) => l.code === currentLanguage);
     return lang?.name || "Unknown";
   };
 
@@ -65,12 +55,26 @@ export const LanguageSelector = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <p className="text-sm text-gray-600">
-            Currently learning: <strong>{getCurrentLanguageName()}</strong>
-          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Currently learning:</span>
+            {currentLanguage && (
+              <div className="flex items-center gap-2">
+                <ReactCountryFlag
+                  countryCode={
+                    ALL_LANGUAGES.find((l) => l.code === currentLanguage)
+                      ?.countryCode || "GB"
+                  }
+                  svg
+                  style={{ width: "1.2em", height: "0.9em" }}
+                />
+                <strong>{getCurrentLanguageName()}</strong>
+              </div>
+            )}
+            {!currentLanguage && <strong>None selected</strong>}
+          </div>
 
           <div className="space-y-2">
-            {MVP_LANGUAGES.map((language) => (
+            {ALL_LANGUAGES.map((language) => (
               <Card
                 key={language.code}
                 className={`p-4 cursor-pointer transition-all border-2 ${
@@ -82,7 +86,14 @@ export const LanguageSelector = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{language.flag}</span>
+                    <ReactCountryFlag
+                      countryCode={language.countryCode || "GB"}
+                      svg
+                      style={{
+                        width: "2em",
+                        height: "1.5em",
+                      }}
+                    />
                     <span className="font-medium text-gray-900">
                       {language.name}
                     </span>

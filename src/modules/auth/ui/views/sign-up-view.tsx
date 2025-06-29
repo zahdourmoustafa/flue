@@ -46,6 +46,7 @@ export const SignUpView = ({
   onBack,
 }: SignUpViewProps = {}) => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
@@ -61,6 +62,7 @@ export const SignUpView = ({
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      setIsEmailLoading(true);
       setError(null);
 
       // Ensure no existing session before creating new account
@@ -75,6 +77,16 @@ export const SignUpView = ({
         password: values.password,
         name: values.name,
       });
+
+      if (!result.data?.user) {
+        throw new Error("Sign-up failed - no user data returned");
+      }
+
+      // Verify session was created successfully
+      const sessionCheck = await authClient.getSession();
+      if (!sessionCheck.data?.user) {
+        throw new Error("Session not established after sign-up");
+      }
 
       // If we have onboarding data, update the user profile with additional fields
       if (
@@ -101,7 +113,10 @@ export const SignUpView = ({
         }
       }
 
-      // Redirect to dashboard after successful sign-up
+      // Small delay to ensure session is fully established
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Redirect to dashboard after successful sign-up and session verification
       router.push("/dashboard");
     } catch (err: any) {
       // Parse Better Auth error messages
@@ -120,6 +135,9 @@ export const SignUpView = ({
         } else if (message.includes("password")) {
           errorMessage =
             "Password does not meet requirements. Please use at least 8 characters.";
+        } else if (message.includes("session not established")) {
+          errorMessage =
+            "Account created but login failed. Please try signing in.";
         }
       }
 
@@ -130,6 +148,8 @@ export const SignUpView = ({
 
       setError(errorMessage);
       console.error("Sign up error:", err);
+    } finally {
+      setIsEmailLoading(false);
     }
   };
 
@@ -325,10 +345,10 @@ export const SignUpView = ({
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={form.formState.isSubmitting}
+                disabled={isEmailLoading || form.formState.isSubmitting}
                 size="lg"
               >
-                {form.formState.isSubmitting
+                {isEmailLoading || form.formState.isSubmitting
                   ? "Creating account..."
                   : "Sign up"}
               </Button>

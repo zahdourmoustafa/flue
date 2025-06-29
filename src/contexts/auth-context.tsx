@@ -155,15 +155,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const userData = session.data.user as UserData;
         setUser(userData);
 
-        // Fetch stats
-        const statsResponse = await fetch("/api/user/stats");
-        if (!statsResponse.ok) {
-          throw new Error("Failed to fetch user stats");
+        // Fetch stats in background - don't block user loading
+        try {
+          const statsResponse = await fetch("/api/user/stats");
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            setStats(statsData);
+            saveToCache(userData, statsData);
+          } else {
+            console.warn("Failed to fetch user stats, using defaults");
+            setStats(null); // Will use defaults in dashboard
+          }
+        } catch (statsError) {
+          console.warn("Error fetching user stats:", statsError);
+          setStats(null); // Will use defaults in dashboard
         }
-        const statsData = await statsResponse.json();
-        setStats(statsData);
-
-        saveToCache(userData, statsData);
       } else {
         setUser(null);
         setStats(null);
