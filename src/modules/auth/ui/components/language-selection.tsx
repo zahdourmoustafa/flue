@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search } from "lucide-react";
-import { Language, LANGUAGES } from "@/types/onboarding";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Language, ALL_LANGUAGES } from "@/types/onboarding";
 
 interface LanguageSelectionProps {
   onLanguageSelect: (language: Language) => void;
@@ -13,112 +11,85 @@ interface LanguageSelectionProps {
   selectedLanguage?: Language | null;
 }
 
+// Extended language data with learner counts (matching Busuu style)
+const LANGUAGE_DATA = [
+  { ...ALL_LANGUAGES.find((l) => l.code === "en")!, learners: "26M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "es")!, learners: "5M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "ja")!, learners: "4M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "fr")!, learners: "5M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "de")!, learners: "4M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "ko")!, learners: "100K" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "it")!, learners: "2M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "ar")!, learners: "1M" },
+  { code: "ru", name: "Russian", flag: "🇷🇺", learners: "2M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "zh")!, learners: "900K" },
+  { code: "tr", name: "Turkish", flag: "🇹🇷", learners: "1M" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "pt")!, learners: "800K" },
+  { ...ALL_LANGUAGES.find((l) => l.code === "nl")!, learners: "30K" },
+  { code: "pl", name: "Polish", flag: "🇵🇱", learners: "500K" },
+];
+
 export const LanguageSelection = ({
   onLanguageSelect,
   onBack,
   selectedLanguage,
 }: LanguageSelectionProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredLanguages = LANGUAGES.filter((language) =>
-    language.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [hoveredLanguage, setHoveredLanguage] = useState<string | null>(null);
 
   const handleLanguageClick = (language: Language) => {
     onLanguageSelect(language);
   };
 
   return (
-    <Card className="overflow-hidden p-0">
-      <CardContent className="p-0">
-        <div className="p-6 md:p-8">
-          <div className="flex items-center gap-4 mb-6">
-            {onBack && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBack}
-                aria-label="Go back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold">
-                Which language do you want to learn?
-              </h1>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {/* Main Language Grid */}
-            <div className="grid grid-cols-4 gap-4">
-              {filteredLanguages.slice(0, 16).map((language) => (
-                <Button
-                  key={language.code}
-                  variant="outline"
-                  className={`h-20 flex-col gap-2 hover:bg-accent ${
-                    selectedLanguage?.code === language.code
-                      ? "border-blue-500 bg-blue-50"
-                      : ""
-                  }`}
-                  onClick={() => handleLanguageClick(language)}
-                  aria-label={`Select ${language.name}`}
-                >
-                  <span className="text-2xl">{language.flag}</span>
-                  <span className="text-xs font-medium">{language.name}</span>
-                </Button>
-              ))}
-            </div>
-
-            {/* Search for Other Languages */}
-            <div className="space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Other languages"
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  aria-label="Search for other languages"
-                />
-              </div>
-
-              {searchTerm && filteredLanguages.length > 16 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {filteredLanguages.slice(16).map((language) => (
-                    <Button
-                      key={language.code}
-                      variant="outline"
-                      className={`h-16 flex-col gap-1 text-xs hover:bg-accent ${
-                        selectedLanguage?.code === language.code
-                          ? "border-blue-500 bg-blue-50"
-                          : ""
-                      }`}
-                      onClick={() => handleLanguageClick(language)}
-                      aria-label={`Select ${language.name}`}
-                    >
-                      <span className="text-lg">{language.flag}</span>
-                      <span className="font-medium">{language.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={!selectedLanguage}
-              onClick={() =>
-                selectedLanguage && onLanguageSelect(selectedLanguage)
-              }
-              aria-label="Continue with selected language"
+    <Card>
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-bold text-gray-900">
+          What would you like to learn?
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          {LANGUAGE_DATA.map((language) => (
+            <button
+              key={language.code}
+              className={`bg-white rounded-lg border border-gray-200 p-6 text-center transition-all duration-200 hover:shadow-lg hover:border-blue-300 ${
+                selectedLanguage?.code === language.code
+                  ? "border-blue-500 shadow-lg"
+                  : ""
+              }`}
+              onClick={() => handleLanguageClick(language)}
+              onMouseEnter={() => setHoveredLanguage(language.code)}
+              onMouseLeave={() => setHoveredLanguage(null)}
+              aria-label={`Select ${language.name}`}
             >
-              Continue
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
+                  <span className="text-4xl">{language.flag}</span>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {language.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {language.learners} learners
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {selectedLanguage && (
+          <div className="text-center">
+            <Button
+              onClick={() => onLanguageSelect(selectedLanguage)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="lg"
+            >
+              Continue with {selectedLanguage.name}
             </Button>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

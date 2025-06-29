@@ -4,57 +4,46 @@ import { user, userStats } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
-export async function POST(request: NextRequest) {
+export const POST = async (req: Request) => {
   try {
-    const body = await request.json();
-    const {
-      userId,
-      learningLanguage,
-      languageLevel,
-      preferredLanguage,
-      translationLanguage,
-    } = body;
+    const { userId, learningLanguage, languageLevel } = await req.json();
 
-    if (!userId) {
+    if (!userId || !learningLanguage || !languageLevel) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    await db.transaction(async (tx) => {
-      // Build update object with only provided fields
-      const updateData: any = {
+    await db
+      .update(user)
+      .set({
+        learningLanguage,
+        languageLevel,
         updatedAt: new Date(),
-      };
+      })
+      .where(eq(user.id, userId));
 
-      if (learningLanguage !== undefined)
-        updateData.learningLanguage = learningLanguage;
-      if (languageLevel !== undefined) updateData.languageLevel = languageLevel;
-      if (preferredLanguage !== undefined)
-        updateData.preferredLanguage = preferredLanguage;
-      if (translationLanguage !== undefined)
-        updateData.translationLanguage = translationLanguage;
-
-      // Update user with provided fields
-      await tx.update(user).set(updateData).where(eq(user.id, userId));
-
-      // Create a userStats entry if it doesn't exist
-      await tx
-        .insert(userStats)
-        .values({
-          id: uuidv4(),
-          userId,
-        })
-        .onConflictDoNothing();
+    const stats = await db.query.userStats.findFirst({
+      where: eq(userStats.userId, userId),
     });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error updating user profile:", error);
+    if (!stats) {
+      await db.insert(userStats).values({
+        id: uuidv4(),
+        userId: userId,
+      });
+    }
+
     return NextResponse.json(
-      { error: "Failed to update profile" },
+      { message: "User profile updated successfully" },
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("Error updating user profile:", err);
+    return NextResponse.json(
+      { error: "Failed to update user profile" },
       { status: 500 }
     );
   }
-}
+};

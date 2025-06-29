@@ -11,8 +11,6 @@ import {
   Mic,
   Video,
   Play,
-  Users,
-  Camera,
   User,
   Zap,
   Phone,
@@ -20,8 +18,8 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Explore", href: "/explore", icon: Compass },
-  { name: "Progress", href: "/progress", icon: TrendingUp },
+  { name: "Explore", href: "/dashboard/explore", icon: Compass },
+  { name: "Progress", href: "/dashboard/progress", icon: TrendingUp },
 ];
 
 const learningModes = [
@@ -30,11 +28,6 @@ const learningModes = [
   { name: "Sentence Mode", href: "/dashboard/sentence-mode", icon: Play },
   { name: "Video Call", href: "/dashboard/videocall", icon: Video },
   { name: "Call Mode", href: "/dashboard/call-mode", icon: Phone },
-
-  { name: "Roleplays", href: "/dashboard/roleplays", icon: Users },
-  { name: "Characters", href: "/dashboard/characters", icon: User },
-  { name: "Debates", href: "/dashboard/debates", icon: MessageCircle },
-  { name: "Photo Mode", href: "/dashboard/photo", icon: Camera },
 ];
 
 export function Sidebar() {

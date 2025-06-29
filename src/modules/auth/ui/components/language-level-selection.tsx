@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Info } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 import { Language, LanguageLevel, LANGUAGE_LEVELS } from "@/types/onboarding";
 
 interface LanguageLevelSelectionProps {
@@ -23,79 +29,68 @@ export const LanguageLevelSelection = ({
   };
 
   return (
-    <Card className="overflow-hidden p-0">
-      <CardContent className="p-0">
-        <div className="p-6 md:p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              aria-label="Go back to language selection"
+    <Card>
+      <CardHeader>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="mb-6 text-gray-600 hover:text-gray-900 w-fit"
+          aria-label="Go back to language selection"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <div className="text-center">
+          <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
+            What is your {selectedLanguage.name} level?
+          </CardTitle>
+          <CardDescription className="text-lg text-gray-600">
+            We will personalize conversations based on your language level.
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4 mb-8">
+          {LANGUAGE_LEVELS.map((level, index) => (
+            <button
+              key={level.code}
+              className={`w-full bg-white rounded-lg border border-gray-200 p-6 text-left transition-all duration-200 hover:shadow-md hover:border-blue-300 ${
+                selectedLevel?.code === level.code
+                  ? "border-blue-500 shadow-md"
+                  : ""
+              }`}
+              onClick={() => handleLevelClick(level)}
+              aria-label={`Select ${level.name} level`}
             >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold">
-                What is your {selectedLanguage.name} level?
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                We will personalize conversations based on your language level.
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" aria-label="More information">
-              <Info className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {LANGUAGE_LEVELS.map((level) => (
-              <Button
-                key={level.code}
-                variant="outline"
-                className={`w-full p-6 h-auto flex items-center justify-between text-left hover:bg-accent ${
-                  selectedLevel?.code === level.code
-                    ? "border-blue-500 bg-blue-50"
-                    : ""
-                }`}
-                onClick={() => handleLevelClick(level)}
-                aria-label={`Select ${level.name} level`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        <div className="w-1 h-1 bg-blue-400 rounded-full ml-1"></div>
-                        <div className="w-1 h-1 bg-blue-300 rounded-full ml-1"></div>
-                      </div>
-                      <span className="font-semibold text-base">
-                        {level.name}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {level.description}
-                    </p>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {level.name}
+                  </h3>
+                  <p className="text-gray-600 mt-1">{level.description}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     {level.cefr}
                   </span>
                 </div>
-              </Button>
-            ))}
+              </div>
+            </button>
+          ))}
+        </div>
 
+        {selectedLevel && (
+          <div className="text-center">
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6"
-              disabled={!selectedLevel}
-              onClick={() => selectedLevel && onLevelSelect(selectedLevel)}
-              aria-label="Continue with selected level"
+              onClick={() => onLevelSelect(selectedLevel)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="lg"
             >
-              Continue
+              Continue with {selectedLevel.name}
             </Button>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
