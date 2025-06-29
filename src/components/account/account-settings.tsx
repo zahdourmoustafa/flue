@@ -32,7 +32,7 @@ export const AccountSettings = () => {
   // Event handlers
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
+      await clearSession();
       router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);

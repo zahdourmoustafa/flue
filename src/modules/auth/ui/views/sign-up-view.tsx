@@ -65,9 +65,15 @@ export const SignUpView = ({
       setIsEmailLoading(true);
       setError(null);
 
-      // Ensure no existing session before creating new account
+      // Completely clear any existing session and cache
       try {
         await authClient.signOut();
+        // Clear localStorage cache
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("fluentzy_user_session");
+          localStorage.removeItem("fluentzy_user_stats");
+          sessionStorage.clear();
+        }
       } catch (e) {
         // Ignore errors if no session exists
       }
@@ -158,9 +164,15 @@ export const SignUpView = ({
       setIsGoogleLoading(true);
       setError(null);
 
-      // Ensure no existing session before Google sign-up
+      // Completely clear any existing session and cache before Google sign-up
       try {
         await authClient.signOut();
+        // Clear localStorage cache
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("fluentzy_user_session");
+          localStorage.removeItem("fluentzy_user_stats");
+          sessionStorage.clear();
+        }
       } catch (e) {
         // Ignore errors if no session exists
       }

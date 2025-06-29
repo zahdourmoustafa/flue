@@ -138,21 +138,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setError(null);
 
-      // Try cache first if enabled
-      if (useCache) {
-        const { user: cachedUser, stats: cachedStats } = loadFromCache();
-        if (cachedUser && cachedStats) {
-          setUser(cachedUser);
-          setStats(cachedStats);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Fetch from API
+      // Fetch from API first to get the current session
       const session = await authClient.getSession();
+
       if (session.data?.user) {
         const userData = session.data.user as UserData;
+
+        // Check if the user has changed compared to cache
+        if (useCache) {
+          const { user: cachedUser, stats: cachedStats } = loadFromCache();
+          if (cachedUser && cachedUser.id === userData.id && cachedStats) {
+            setUser(cachedUser);
+            setStats(cachedStats);
+            setLoading(false);
+            return;
+          }
+          // If user has changed, clear cache
+          clearCache();
+        }
+
         setUser(userData);
 
         // Fetch stats in background - don't block user loading
@@ -164,11 +168,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             saveToCache(userData, statsData);
           } else {
             console.warn("Failed to fetch user stats, using defaults");
-            setStats(null); // Will use defaults in dashboard
+            setStats(null);
           }
         } catch (statsError) {
           console.warn("Error fetching user stats:", statsError);
-          setStats(null); // Will use defaults in dashboard
+          setStats(null);
         }
       } else {
         setUser(null);
@@ -214,11 +218,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Clear session completely
   const clearSession = async () => {
     try {
+      // Clear auth client session first
+      await authClient.signOut();
+
       // Clear local storage
       clearCache();
-
-      // Clear auth client session
-      await authClient.signOut();
 
       // Reset state
       setUser(null);
@@ -229,11 +233,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Clear any other browser storage
       if (typeof window !== "undefined") {
         sessionStorage.clear();
+        // Clear specific localStorage items
+        localStorage.removeItem("fluentzy_user_session");
+        localStorage.removeItem("fluentzy_user_stats");
         // Clear any auth cookies
         document.cookie.split(";").forEach((c) => {
           const eqPos = c.indexOf("=");
-          const name = eqPos > -1 ? c.substr(0, eqPos) : c;
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+          if (name) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          }
         });
       }
     } catch (error) {
