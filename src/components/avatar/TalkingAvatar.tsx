@@ -161,7 +161,7 @@ export function TalkingAvatar({
         {showVideo && videoUrl && (
           <video
             ref={videoRef}
-            src={videoUrl}
+            src={videoUrl ?? undefined}
             className="w-full h-full object-cover"
             autoPlay
             muted={false}
