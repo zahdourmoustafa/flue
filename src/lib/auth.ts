@@ -5,6 +5,11 @@ import * as schema from "@/db/schema";
 
 // Automatically detect the correct base URL for the environment
 const getBaseURL = () => {
+  // Check for explicit URL first
+  if (process.env.BETTER_AUTH_URL) {
+    return process.env.BETTER_AUTH_URL;
+  }
+
   // Production check - if we're on Netlify or have NETLIFY environment
   if (
     process.env.NETLIFY ||
@@ -29,6 +34,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      redirectURI: `${getBaseURL()}/api/auth/callback/google`,
     },
   },
   emailAndPassword: {
@@ -69,6 +75,8 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "https://fluentzy.netlify.app",
+    "https://accounts.google.com",
     process.env.NEXTAUTH_URL || "",
+    process.env.BETTER_AUTH_URL || "",
   ].filter(Boolean),
 });
