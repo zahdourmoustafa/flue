@@ -65,107 +65,103 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cache key for localStorage
-  const CACHE_KEY = "fluentzy_user_session";
-  const STATS_CACHE_KEY = "fluentzy_user_stats";
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  // SECURITY FIX: Completely disable localStorage caching to prevent session mixing
+  // Always fetch fresh data from server to ensure correct user data
 
-  // Load from cache if available and not expired
-  const loadFromCache = (): {
-    user: UserData | null;
-    stats: UserStats | null;
-  } => {
-    if (typeof window === "undefined") return { user: null, stats: null };
+  // Clear all auth-related storage completely
+  const clearAllStorage = () => {
+    if (typeof window === "undefined") return;
 
     try {
-      const cachedUser = localStorage.getItem(CACHE_KEY);
-      const cachedStats = localStorage.getItem(STATS_CACHE_KEY);
+      console.log("Clearing ALL auth storage and cookies");
 
-      if (cachedUser && cachedStats) {
-        const { data: userData, timestamp: userTimestamp } =
-          JSON.parse(cachedUser);
-        const { data: statsData, timestamp: statsTimestamp } =
-          JSON.parse(cachedStats);
+      // Clear ALL localStorage (not just specific items)
+      localStorage.clear();
 
-        if (
-          Date.now() - userTimestamp < CACHE_DURATION &&
-          Date.now() - statsTimestamp < CACHE_DURATION
-        ) {
-          return { user: userData, stats: statsData };
-        } else {
-          localStorage.removeItem(CACHE_KEY);
-          localStorage.removeItem(STATS_CACHE_KEY);
+      // Clear sessionStorage
+      sessionStorage.clear();
+
+      // Clear ALL cookies (including better-auth cookies)
+      document.cookie.split(";").forEach((c) => {
+        const eqPos = c.indexOf("=");
+        const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+        if (name) {
+          // Clear for all possible domains and paths
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
         }
-      }
-    } catch (error) {
-      console.warn("Failed to load session from cache:", error);
-    }
-    return { user: null, stats: null };
-  };
+      });
 
-  // Save to cache
-  const saveToCache = (userData: UserData, statsData: UserStats) => {
-    if (typeof window === "undefined") return;
+      // Force clear better-auth specific cookies
+      const authCookieNames = [
+        "better-auth",
+        "auth-token",
+        "session",
+        "auth_session",
+        "next-auth",
+        "session-token",
+      ];
+      authCookieNames.forEach((cookieName) => {
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+      });
 
-    try {
-      localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify({
-          data: userData,
-          timestamp: Date.now(),
-        })
-      );
-      localStorage.setItem(
-        STATS_CACHE_KEY,
-        JSON.stringify({
-          data: statsData,
-          timestamp: Date.now(),
-        })
-      );
+      console.log("All storage and cookies cleared");
     } catch (error) {
-      console.warn("Failed to save session to cache:", error);
+      console.warn("Failed to clear storage:", error);
     }
   };
 
-  // Clear cache
-  const clearCache = () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(CACHE_KEY);
-    localStorage.removeItem(STATS_CACHE_KEY);
-  };
-
-  const fetchUser = async (useCache = true) => {
+  const fetchUser = async () => {
     try {
       setError(null);
+      setLoading(true);
 
-      // Fetch from API first to get the current session
+      // SECURITY FIX: Always fetch fresh session from server - no caching
+      console.log("Fetching fresh user session...");
       const session = await authClient.getSession();
 
       if (session.data?.user) {
         const userData = session.data.user as UserData;
+        console.log("User session found:", {
+          id: userData.id,
+          email: userData.email,
+        });
 
-        // Check if the user has changed compared to cache
-        if (useCache) {
-          const { user: cachedUser, stats: cachedStats } = loadFromCache();
-          if (cachedUser && cachedUser.id === userData.id && cachedStats) {
-            setUser(cachedUser);
-            setStats(cachedStats);
-            setLoading(false);
+        // CRITICAL: Check if this is an unexpected session during signup flow
+        const isSignupFlow = window.location.pathname.includes("sign-up");
+        if (isSignupFlow) {
+          console.warn("⚠️ UNEXPECTED SESSION during signup - force clearing!");
+          await authClient.signOut();
+          clearAllStorage();
+
+          // Re-check after clearing
+          const cleanSession = await authClient.getSession();
+          if (cleanSession.data?.user) {
+            console.error(
+              "🚨 SESSION PERSISTS after clearing - forcing page reload"
+            );
+            window.location.reload();
             return;
           }
-          // If user has changed, clear cache
-          clearCache();
+
+          setUser(null);
+          setStats(null);
+          return;
         }
 
         setUser(userData);
 
-        // Fetch stats in background - don't block user loading
+        // Fetch stats - always fresh from server
         try {
           const statsResponse = await fetch("/api/user/stats");
           if (statsResponse.ok) {
             const statsData = await statsResponse.json();
             setStats(statsData);
-            saveToCache(userData, statsData);
           } else {
             console.warn("Failed to fetch user stats, using defaults");
             setStats(null);
@@ -175,33 +171,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setStats(null);
         }
       } else {
+        console.log("No user session found, clearing state");
         setUser(null);
         setStats(null);
-        clearCache();
+        clearAllStorage(); // Clear any stale data
       }
     } catch (err) {
       console.error("Error fetching user session:", err);
       setError("Failed to load user session");
       setUser(null);
       setStats(null);
-      clearCache();
+      clearAllStorage(); // Clear any stale data on error
     } finally {
       setLoading(false);
     }
   };
 
   const refreshUser = async () => {
-    setLoading(true);
-    await fetchUser(false); // Force refresh, skip cache
+    await fetchUser(); // Always fetch fresh data
   };
 
   const updateUser = (updates: Partial<UserData>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
-      if (stats) {
-        saveToCache(updatedUser, stats);
-      }
+      // No caching - data will be fresh on next load
     }
   };
 
@@ -209,20 +203,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (stats) {
       const updatedStats = { ...stats, ...updates };
       setStats(updatedStats);
-      if (user) {
-        saveToCache(user, updatedStats);
-      }
+      // No caching - data will be fresh on next load
     }
   };
 
   // Clear session completely
   const clearSession = async () => {
     try {
+      console.log("Clearing user session completely");
+
       // Clear auth client session first
       await authClient.signOut();
 
-      // Clear local storage
-      clearCache();
+      // Clear all storage
+      clearAllStorage();
 
       // Reset state
       setUser(null);
@@ -230,28 +224,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setError(null);
       setLoading(false);
 
-      // Clear any other browser storage
-      if (typeof window !== "undefined") {
-        sessionStorage.clear();
-        // Clear specific localStorage items
-        localStorage.removeItem("fluentzy_user_session");
-        localStorage.removeItem("fluentzy_user_stats");
-        // Clear any auth cookies
-        document.cookie.split(";").forEach((c) => {
-          const eqPos = c.indexOf("=");
-          const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
-          if (name) {
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-          }
-        });
-      }
+      console.log("Session cleared successfully");
     } catch (error) {
       console.error("Error clearing session:", error);
     }
   };
 
   useEffect(() => {
+    // NUCLEAR SECURITY FIX: Don't load any session during signup/signin to prevent mixing
+    const isAuthFlow = typeof window !== "undefined" && 
+      (window.location.pathname.includes('sign-up') || 
+       window.location.pathname.includes('sign-in'));
+    
+    if (isAuthFlow) {
+      console.log("🛡️ BLOCKING auth loading during auth flow to prevent session mixing");
+      setUser(null);
+      setStats(null);
+      setLoading(false);
+      clearAllStorage(); // Clear any stale data
+      return;
+    }
+    
     fetchUser();
   }, []);
 

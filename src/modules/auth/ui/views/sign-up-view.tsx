@@ -65,17 +65,56 @@ export const SignUpView = ({
       setIsEmailLoading(true);
       setError(null);
 
-      // Completely clear any existing session and cache
+      // SECURITY FIX: Completely clear ALL sessions before creating new account
+      console.log("FORCE CLEARING all sessions before signup");
       try {
+        // First, force sign out
         await authClient.signOut();
-        // Clear localStorage cache
+
+        // Wait a bit for signOut to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Then aggressively clear ALL storage
         if (typeof window !== "undefined") {
-          localStorage.removeItem("fluentzy_user_session");
-          localStorage.removeItem("fluentzy_user_stats");
+          localStorage.clear();
           sessionStorage.clear();
+
+          // Clear ALL cookies with all possible paths/domains
+          document.cookie.split(";").forEach((c) => {
+            const eqPos = c.indexOf("=");
+            const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+            if (name) {
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+            }
+          });
+
+          // Force clear auth cookies
+          const authCookies = [
+            "better-auth",
+            "auth-token",
+            "session",
+            "auth_session",
+            "next-auth",
+          ];
+          authCookies.forEach((cookie) => {
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          });
         }
+
+        // Additional sign out call to ensure complete clearing
+        await authClient.signOut();
+
+        console.log("Complete session clearing finished");
+
+        // Wait before proceeding to ensure clean slate
+        await new Promise((resolve) => setTimeout(resolve, 200));
       } catch (e) {
-        // Ignore errors if no session exists
+        console.warn("Error in session clearing:", e);
       }
 
       const result = await authClient.signUp.email({
@@ -119,11 +158,11 @@ export const SignUpView = ({
         }
       }
 
-      // Small delay to ensure session is fully established
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Clear the auth flow flag and force page navigation
+      console.log("✅ Signup successful, redirecting to dashboard");
 
-      // Redirect to dashboard after successful sign-up and session verification
-      router.push("/dashboard");
+      // Force navigation to dashboard (this will trigger auth context to load fresh session)
+      window.location.href = "/dashboard";
     } catch (err: any) {
       // Parse Better Auth error messages
       let errorMessage = "Failed to create account. Please try again.";
@@ -164,23 +203,58 @@ export const SignUpView = ({
       setIsGoogleLoading(true);
       setError(null);
 
-      // Completely clear any existing session and cache before Google sign-up
+      // SECURITY FIX: Completely clear ALL sessions before Google sign-up
+      console.log("FORCE CLEARING all sessions before Google signup");
       try {
+        // Force complete session clearing
         await authClient.signOut();
-        // Clear localStorage cache
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         if (typeof window !== "undefined") {
-          localStorage.removeItem("fluentzy_user_session");
-          localStorage.removeItem("fluentzy_user_stats");
+          localStorage.clear();
           sessionStorage.clear();
+
+          // Aggressive cookie clearing
+          document.cookie.split(";").forEach((c) => {
+            const eqPos = c.indexOf("=");
+            const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+            if (name) {
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+            }
+          });
+
+          // Clear auth cookies
+          [
+            "better-auth",
+            "auth-token",
+            "session",
+            "auth_session",
+            "next-auth",
+          ].forEach((cookie) => {
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+            document.cookie = `${cookie}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          });
         }
+
+        await authClient.signOut();
+        await new Promise((resolve) => setTimeout(resolve, 200));
       } catch (e) {
-        // Ignore errors if no session exists
+        console.warn("Error in session clearing:", e);
       }
 
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard", // Redirect after successful sign-up
       });
+
+      // Force page refresh after Google auth to ensure clean session loading
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1000);
     } catch (err) {
       setError("Failed to sign up with Google");
       console.error("Google sign up error:", err);

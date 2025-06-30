@@ -32,16 +32,17 @@ export const AccountSettings = () => {
   // Event handlers
   const handleLogout = async () => {
     try {
+      console.log("Logging out user completely");
+
       // Clear auth client session
       await authClient.signOut();
 
-      // Clear localStorage cache
+      // SECURITY FIX: Clear ALL storage to prevent session mixing
       if (typeof window !== "undefined") {
-        localStorage.removeItem("fluentzy_user_session");
-        localStorage.removeItem("fluentzy_user_stats");
+        localStorage.clear();
         sessionStorage.clear();
 
-        // Clear any auth cookies
+        // Clear all cookies
         document.cookie.split(";").forEach((c) => {
           const eqPos = c.indexOf("=");
           const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
@@ -52,6 +53,7 @@ export const AccountSettings = () => {
         });
       }
 
+      console.log("Logout completed successfully");
       router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);

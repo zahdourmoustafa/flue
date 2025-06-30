@@ -3,7 +3,6 @@
 import React from "react";
 import { MessageCircle, Video, Mic, Play, Phone } from "lucide-react";
 import { LearningModeCard } from "./learning-mode-card";
-import { useSubscription } from "@/hooks/useSubscription";
 
 const learningModes = [
   {
@@ -62,8 +61,6 @@ const learningModes = [
 ];
 
 export const LearningModesSection: React.FC = () => {
-  const { requiresPremium, hasAccess } = useSubscription();
-
   return (
     <div className="space-y-6">
       <div className="text-center lg:text-left">
@@ -76,20 +73,9 @@ export const LearningModesSection: React.FC = () => {
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {learningModes.map((mode) => {
-          const isPremiumFeature = requiresPremium(mode.id);
-          const hasAccessToFeature = hasAccess || !isPremiumFeature;
-
-          return (
-            <LearningModeCard
-              key={mode.id}
-              {...mode}
-              badge={isPremiumFeature && !hasAccess ? "Premium" : mode.badge}
-              isPremium={isPremiumFeature}
-              hasAccess={hasAccessToFeature}
-            />
-          );
-        })}
+        {learningModes.map((mode) => (
+          <LearningModeCard key={mode.id} {...mode} />
+        ))}
       </div>
     </div>
   );

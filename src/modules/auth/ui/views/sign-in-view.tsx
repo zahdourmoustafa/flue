@@ -47,8 +47,8 @@ export const SignInView = () => {
         password: values.password,
       });
 
-      // Redirect to dashboard after successful sign-in
-      router.push("/dashboard");
+      // Force navigation to dashboard to ensure clean session loading
+      window.location.href = "/dashboard";
     } catch (err: any) {
       // Parse Better Auth error messages
       let errorMessage = "Invalid email or password. Please try again.";
@@ -90,6 +90,11 @@ export const SignInView = () => {
         provider: "google",
         callbackURL: "/dashboard", // Redirect after successful sign-in
       });
+
+      // Force clean navigation after Google auth
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 1000);
     } catch (err) {
       setError("Failed to sign in with Google");
       console.error("Google sign in error:", err);
@@ -154,62 +159,62 @@ export const SignInView = () => {
                   OR
                 </span>
               </div>
-                </div>
+            </div>
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleSubmit)}
                 className="space-y-4"
               >
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel className="text-blue-600 font-medium">
                         Email
                       </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
+                      <FormControl>
+                        <Input
+                          type="email"
                           placeholder=""
-                            {...field}
-                            aria-label="Email address"
+                          {...field}
+                          aria-label="Email address"
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
                       <FormLabel className="text-gray-700 font-medium">
                         Password
                       </FormLabel>
-                        <FormControl>
-                            <Input
+                      <FormControl>
+                        <Input
                           type="password"
                           placeholder=""
-                              {...field}
-                              aria-label="Password"
+                          {...field}
+                          aria-label="Password"
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                         />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="text-right">
                   <Link
@@ -231,7 +236,7 @@ export const SignInView = () => {
               </form>
             </Form>
           </div>
-          </div>
+        </div>
       </div>
     </div>
   );

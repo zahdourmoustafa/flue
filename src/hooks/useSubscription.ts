@@ -57,21 +57,15 @@ export const useSubscription = () => {
     },
   });
 
-  // Helper functions
-  const isPremium = subscriptionStatus?.isActive || false;
-  const isTrialing = subscriptionStatus?.inTrial || false;
-  const hasAccess = isPremium || isTrialing;
-  const trialDaysLeft = subscriptionStatus?.trialDaysLeft || 0;
+  // Helper functions - ALL FEATURES ARE NOW FREE
+  const isPremium = true; // Always return true for premium status
+  const isTrialing = false; // No need for trial since everything is free
+  const hasAccess = true; // Always has access to everything
+  const trialDaysLeft = 0; // No trial needed
 
-  // Check if a feature requires premium
+  // Check if a feature requires premium - ALWAYS RETURN FALSE (everything is free)
   const requiresPremium = (featureId: string): boolean => {
-    const premiumFeatures = [
-      "dialogue",
-      "sentence-mode",
-      "videocall",
-      "call-mode",
-    ];
-    return premiumFeatures.includes(featureId);
+    return false; // All features are now free
   };
 
   // Start subscription flow

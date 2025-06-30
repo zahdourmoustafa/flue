@@ -4,7 +4,6 @@ import { SentenceModeOverview } from "@/components/sentence-mode";
 import { useAuth } from "@/contexts/auth-context";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SubscriptionGuard } from "@/components/subscription/subscription-guard";
 
 const SentenceModeLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -45,23 +44,21 @@ const SentenceModePage = () => {
   }
 
   return (
-    <SubscriptionGuard featureId="sentence-mode">
-      <div className="container mx-auto py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Sentence Mode
-            </h1>
-            <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-              Practice pronunciation through guided sentence repetition.
-              Progress through 10 units with increasing difficulty.
-            </p>
-          </div>
-
-          <SentenceModeOverview userId={user.id} />
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Sentence Mode
+          </h1>
+          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+            Practice pronunciation through guided sentence repetition. Progress
+            through 10 units with increasing difficulty.
+          </p>
         </div>
+
+        <SentenceModeOverview userId={user.id} />
       </div>
-    </SubscriptionGuard>
+    </div>
   );
 };
 
