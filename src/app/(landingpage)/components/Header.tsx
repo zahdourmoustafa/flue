@@ -69,14 +69,16 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              className="text-gray-600 hover:text-gray-900"
-              onClick={handleSignIn}
-              disabled={loading}
-            >
-              {user ? "Dashboard" : "Sign in"}
-            </Button>
+            {!user && (
+              <Button
+                variant="ghost"
+                className="text-gray-600 hover:text-gray-900"
+                onClick={handleSignIn}
+                disabled={loading}
+              >
+                Sign in
+              </Button>
+            )}
             <Button
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 rounded-full px-6"
               onClick={handleGetStarted}
