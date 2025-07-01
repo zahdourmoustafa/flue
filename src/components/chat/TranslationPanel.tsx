@@ -14,6 +14,7 @@ interface TranslationPanelProps {
   isLoading: boolean;
   isError: boolean;
   learningLanguage?: string;
+  translationLanguage?: string;
   onClose: () => void;
 }
 
@@ -24,6 +25,7 @@ export function TranslationPanel({
   isLoading,
   isError,
   learningLanguage = "en",
+  translationLanguage = "en",
   onClose,
 }: TranslationPanelProps) {
   const [copied, setCopied] = useState(false);
@@ -40,7 +42,7 @@ export function TranslationPanel({
 
   const learningLangName = languageNames[learningLanguage] || learningLanguage;
   const translationLangName =
-    languageNames[learningLanguage === "en" ? "es" : "en"];
+    languageNames[translationLanguage] || translationLanguage;
 
   const handleCopy = async () => {
     if (translation) {

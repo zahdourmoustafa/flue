@@ -548,6 +548,7 @@ export function DialogueChatInterface({
         isLoading={isTranslating}
         isError={translationError}
         learningLanguage={learningLanguage}
+        translationLanguage={user?.translationLanguage}
       />
     </div>
   );
