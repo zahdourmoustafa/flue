@@ -4,9 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
 export const Header = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  const handleSignIn = () => {
+    if (user) {
+      // User is already authenticated, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // User is not authenticated, go to sign-in page
+      router.push("/sign-in");
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (user) {
+      // User is already authenticated, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // User is not authenticated, go to sign-up page
+      router.push("/sign-up");
+    }
+  };
 
   return (
     <header className="w-full bg-white border-b border-gray-100">
@@ -50,15 +72,17 @@ export const Header = () => {
             <Button
               variant="ghost"
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => router.push("/sign-in")}
+              onClick={handleSignIn}
+              disabled={loading}
             >
-              Sign in
+              {user ? "Dashboard" : "Sign in"}
             </Button>
             <Button
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 rounded-full px-6"
-              onClick={() => router.push("/sign-up")}
+              onClick={handleGetStarted}
+              disabled={loading}
             >
-              Get started
+              {user ? "Dashboard" : "Get started"}
             </Button>
           </div>
         </nav>

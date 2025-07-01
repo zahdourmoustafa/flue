@@ -5,10 +5,22 @@ import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import Image from "next/image";
 
 export const HeroSection = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
+
+  const handleStartForFree = () => {
+    if (user) {
+      // User is already authenticated, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // User is not authenticated, go to sign-up page
+      router.push("/sign-up");
+    }
+  };
 
   return (
     <section className="relative bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 text-white py-20 overflow-hidden">
@@ -17,13 +29,7 @@ export const HeroSection = () => {
 
       {/* Badge in top-right corner of red zone */}
       <div className="absolute top-8 right-8 z-20">
-        <Image
-          src="/badge.png"
-          alt="Badge"
-          width={100}
-          height={100}
-
-        />
+        <Image src="/badge.png" alt="Badge" width={100} height={100} />
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
@@ -65,9 +71,10 @@ export const HeroSection = () => {
                 <Button
                   size="lg"
                   className="bg-white text-blue-600 hover:bg-gray-50 rounded-full px-8 py-4 text-lg font-semibold"
-                  onClick={() => router.push("/sign-up")}
+                  onClick={handleStartForFree}
+                  disabled={loading}
                 >
-                  Start for free
+                  {user ? "Go to Dashboard" : "Start for free"}
                 </Button>
               </div>
 

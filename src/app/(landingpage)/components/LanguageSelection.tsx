@@ -3,21 +3,38 @@
 import { motion } from "framer-motion";
 import ReactCountryFlag from "react-country-flag";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
 export const LanguageSelection = () => {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   const handleLanguageSelect = (language: {
     name: string;
     countryCode: string;
     learners: string;
   }) => {
-    // Redirect to sign-up page with selected language as query parameter
-    router.push(
-      `/sign-up?language=${encodeURIComponent(language.name)}&country=${
-        language.countryCode
-      }`
-    );
+    if (user) {
+      // User is already authenticated, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // Redirect to sign-up page with selected language as query parameter
+      router.push(
+        `/sign-up?language=${encodeURIComponent(language.name)}&country=${
+          language.countryCode
+        }`
+      );
+    }
+  };
+
+  const handleViewAllLanguages = () => {
+    if (user) {
+      // User is already authenticated, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // User is not authenticated, go to sign-up page
+      router.push("/sign-up");
+    }
   };
 
   const languages = [
@@ -101,10 +118,11 @@ export const LanguageSelection = () => {
             Can't find your language? We offer 50+ languages in total.
           </p>
           <button
-            onClick={() => router.push("/sign-up")}
-            className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+            onClick={handleViewAllLanguages}
+            disabled={loading}
+            className="text-blue-600 font-semibold hover:text-blue-700 transition-colors disabled:opacity-50"
           >
-            View all languages →
+            {user ? "Go to Dashboard →" : "View all languages →"}
           </button>
         </motion.div>
       </div>
