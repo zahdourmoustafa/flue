@@ -100,38 +100,6 @@ export const AccountSettings = () => {
     }
   };
 
-  const handleInterfaceLanguageUpdate = async (languageCode: string) => {
-    if (!userData?.id) return;
-
-    try {
-      const response = await fetch("/api/auth/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: userData.id,
-          preferredLanguage: languageCode,
-        }),
-      });
-
-      if (response.ok) {
-        updateUser({ preferredLanguage: languageCode });
-        toast({
-          title: "Interface language updated",
-          description: `Interface language changed to ${
-            languageCode === "en" ? "English" : "Spanish"
-          }.`,
-        });
-      }
-    } catch (error) {
-      console.error("Error updating interface language:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update interface language.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleTranslationLanguageUpdate = async (languageCode: string) => {
     if (!userData?.id) return;
 
@@ -147,12 +115,15 @@ export const AccountSettings = () => {
 
       if (response.ok) {
         updateUser({ translationLanguage: languageCode });
+        const languageName =
+          ALL_LANGUAGES.find((l) => l.code === languageCode)?.name ||
+          languageCode;
         toast({
           title: "Translation language updated",
-          description: `Translation language changed to ${
-            languageCode === "en" ? "English" : "Spanish"
-          }.`,
+          description: `Translation language changed to ${languageName}.`,
         });
+      } else {
+        throw new Error("Failed to update translation language");
       }
     } catch (error) {
       console.error("Error updating translation language:", error);
@@ -242,7 +213,6 @@ export const AccountSettings = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         userData={userData}
-        onInterfaceLanguageUpdate={handleInterfaceLanguageUpdate}
         onTranslationLanguageUpdate={handleTranslationLanguageUpdate}
         onTargetLanguageUpdate={handleLanguageSelect}
         onTargetLanguageClick={() => setIsLanguageSelectorOpen(true)}

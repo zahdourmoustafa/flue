@@ -6,23 +6,40 @@ import { v4 as uuidv4 } from "uuid";
 
 export const POST = async (req: Request) => {
   try {
-    const { userId, learningLanguage, languageLevel } = await req.json();
+    const {
+      userId,
+      learningLanguage,
+      languageLevel,
+      translationLanguage,
+      preferredLanguage,
+    } = await req.json();
 
-    if (!userId || !learningLanguage || !languageLevel) {
+    if (!userId) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
 
-    await db
-      .update(user)
-      .set({
-        learningLanguage,
-        languageLevel,
-        updatedAt: new Date(),
-      })
-      .where(eq(user.id, userId));
+    // Build update object dynamically based on provided fields
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (learningLanguage !== undefined) {
+      updateData.learningLanguage = learningLanguage;
+    }
+    if (languageLevel !== undefined) {
+      updateData.languageLevel = languageLevel;
+    }
+    if (translationLanguage !== undefined) {
+      updateData.translationLanguage = translationLanguage;
+    }
+    if (preferredLanguage !== undefined) {
+      updateData.preferredLanguage = preferredLanguage;
+    }
+
+    await db.update(user).set(updateData).where(eq(user.id, userId));
 
     const stats = await db.query.userStats.findFirst({
       where: eq(userStats.userId, userId),

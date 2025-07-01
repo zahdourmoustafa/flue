@@ -28,7 +28,6 @@ interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   userData: UserData | null;
-  onInterfaceLanguageUpdate: (lang: string) => void;
   onTranslationLanguageUpdate: (lang: string) => void;
   onTargetLanguageUpdate: (lang: string) => void;
   onTargetLanguageClick?: () => void; // Keep for backward compatibility if needed
@@ -38,7 +37,6 @@ export const SettingsPanel = ({
   isOpen,
   onClose,
   userData,
-  onInterfaceLanguageUpdate,
   onTranslationLanguageUpdate,
   onTargetLanguageUpdate,
 }: SettingsPanelProps) => {
@@ -79,52 +77,6 @@ export const SettingsPanel = ({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-      </div>
-
-      {/* Interface Language */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          Choose interface language
-        </h3>
-        <Select
-          value={userData?.preferredLanguage || "en"}
-          onValueChange={onInterfaceLanguageUpdate}
-        >
-          <SelectTrigger className="w-full p-4 h-auto border border-gray-200 rounded-lg hover:border-gray-300 transition-colors bg-white">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <ReactCountryFlag
-                  countryCode={getLanguageFlag(
-                    userData?.preferredLanguage || "en"
-                  )}
-                  svg
-                  style={{
-                    width: "2em",
-                    height: "1.5em",
-                  }}
-                  title={getLanguageName(userData?.preferredLanguage || "en")}
-                />
-                <span className="text-sm font-medium">
-                  {getLanguageName(userData?.preferredLanguage || "en")}
-                </span>
-              </div>
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            {ALL_LANGUAGES.map((language) => (
-              <SelectItem key={language.code} value={language.code}>
-                <div className="flex items-center gap-2">
-                  <ReactCountryFlag
-                    countryCode={language.countryCode || "GB"}
-                    svg
-                    style={{ width: "1.2em", height: "0.9em" }}
-                  />
-                  <span>{language.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Translation Language */}
