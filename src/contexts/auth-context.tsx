@@ -156,6 +156,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         setUser(userData);
 
+        // Fetch complete user profile including language settings
+        try {
+          const profileResponse = await fetch("/api/user/profile");
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            // Merge session user data with profile data
+            const updatedUser = {
+              ...userData,
+              learningLanguage: profileData.learningLanguage,
+              languageLevel: profileData.languageLevel,
+              preferredLanguage: profileData.preferredLanguage,
+            };
+            setUser(updatedUser);
+            console.log("Updated user with profile data:", {
+              id: updatedUser.id,
+              learningLanguage: updatedUser.learningLanguage,
+              languageLevel: updatedUser.languageLevel,
+            });
+          } else {
+            console.warn(
+              "Failed to fetch user profile, using session data only"
+            );
+            setUser(userData);
+          }
+        } catch (profileError) {
+          console.warn("Error fetching user profile:", profileError);
+          setUser(userData);
+        }
+
         // Fetch stats - always fresh from server
         try {
           const statsResponse = await fetch("/api/user/stats");
@@ -232,19 +261,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // NUCLEAR SECURITY FIX: Don't load any session during signup/signin to prevent mixing
-    const isAuthFlow = typeof window !== "undefined" && 
-      (window.location.pathname.includes('sign-up') || 
-       window.location.pathname.includes('sign-in'));
-    
+    const isAuthFlow =
+      typeof window !== "undefined" &&
+      (window.location.pathname.includes("sign-up") ||
+        window.location.pathname.includes("sign-in"));
+
     if (isAuthFlow) {
-      console.log("🛡️ BLOCKING auth loading during auth flow to prevent session mixing");
+      console.log(
+        "🛡️ BLOCKING auth loading during auth flow to prevent session mixing"
+      );
       setUser(null);
       setStats(null);
       setLoading(false);
       clearAllStorage(); // Clear any stale data
       return;
     }
-    
+
     fetchUser();
   }, []);
 

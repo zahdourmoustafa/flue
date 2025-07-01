@@ -10,6 +10,7 @@ import { CallStatus } from "./CallStatus";
 import { CallControls } from "./CallControls";
 import { VoiceWaveform } from "./VoiceWaveform";
 import { useRealtimeCall } from "@/hooks/useRealtimeCall";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface CallInterfaceProps {
   user: {
@@ -30,6 +31,27 @@ export const CallInterface = ({ user }: CallInterfaceProps) => {
   const ringtonRef = useRef<HTMLAudioElement>(null);
   const durationInterval = useRef<NodeJS.Timeout>();
 
+  // Fetch the complete user profile with language settings
+  const {
+    profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useUserProfile();
+
+  // Combine auth user with profile data to ensure we have language settings
+  const completeUser = {
+    ...user,
+    learningLanguage: profile?.learningLanguage || user.learningLanguage,
+    languageLevel: profile?.languageLevel || user.languageLevel,
+  };
+
+  console.log("CallInterface - Complete user data:", {
+    id: completeUser.id,
+    name: completeUser.name,
+    learningLanguage: completeUser.learningLanguage,
+    languageLevel: completeUser.languageLevel,
+  });
+
   const {
     isConnected,
     isUserSpeaking,
@@ -39,10 +61,39 @@ export const CallInterface = ({ user }: CallInterfaceProps) => {
     disconnect,
     toggleMute,
   } = useRealtimeCall({
-    user,
+    user: completeUser,
     onCallStart: () => setCallState("connected"),
     onCallEnd: () => setCallState("ended"),
   });
+
+  // Show loading state if profile is still loading
+  if (profileLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show error if no learning language is set
+  if (!completeUser.learningLanguage) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <Card className="w-full max-w-md p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-4">
+            Language Not Set
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Please set your learning language in your profile settings before
+            using Call Mode.
+          </p>
+          <Button onClick={() => router.push("/dashboard/account/profile")}>
+            Go to Profile Settings
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   // Play ringing sound on mount
   useEffect(() => {
@@ -272,10 +323,18 @@ export const CallInterface = ({ user }: CallInterfaceProps) => {
           )}
 
           {/* Learning Language Indicator */}
-          {user.learningLanguage && callState === "connected" && (
+          {completeUser.learningLanguage && callState === "connected" && (
             <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">
               Speaking in{" "}
-              {user.learningLanguage === "es" ? "Spanish" : "English"}
+              {(() => {
+                const lang = completeUser.learningLanguage?.toLowerCase();
+                if (lang === "es" || lang === "spanish") return "Spanish";
+                if (lang === "fr" || lang === "french") return "French";
+                if (lang === "de" || lang === "german") return "German";
+                if (lang === "it" || lang === "italian") return "Italian";
+                if (lang === "pt" || lang === "portuguese") return "Portuguese";
+                return "English";
+              })()}
             </div>
           )}
         </div>
