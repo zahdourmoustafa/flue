@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AudioRecordingState } from "@/types/sentence-mode";
 import { Mic, Square, Play, RotateCcw, Loader2 } from "lucide-react";
@@ -10,12 +10,14 @@ interface AudioControlsProps {
   onListen: () => void;
   isRecording: boolean;
   isPlaying: boolean;
+  resetTrigger?: number; // Increment this to trigger reset
 }
 
 export const AudioControls = ({
   onRecordingComplete,
   onListen,
   isPlaying,
+  resetTrigger = 0,
 }: AudioControlsProps) => {
   const [recordingState, setRecordingState] = useState<AudioRecordingState>({
     isRecording: false,
@@ -28,6 +30,22 @@ export const AudioControls = ({
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetRecording = () => {
+    setRecordingState({
+      isRecording: false,
+      audioBlob: null,
+      duration: 0,
+      error: null,
+    });
+  };
+
+  // Reset recording state when resetTrigger changes
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      resetRecording();
+    }
+  }, [resetTrigger]);
 
   const processRecording = async (audioBlob: Blob) => {
     console.log("🎤 Processing recording...");
@@ -131,15 +149,6 @@ export const AudioControls = ({
         timerRef.current = null;
       }
     }
-  };
-
-  const resetRecording = () => {
-    setRecordingState({
-      isRecording: false,
-      audioBlob: null,
-      duration: 0,
-      error: null,
-    });
   };
 
   const playRecording = () => {

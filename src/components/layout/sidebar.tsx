@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useNavigationContext } from "@/contexts";
 import {
   Home,
   Compass,
@@ -32,6 +33,16 @@ const learningModes = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { navigateWithConfirmation } = useNavigationContext();
+
+  const handleNavigation = (href: string) => {
+    if (navigateWithConfirmation) {
+      navigateWithConfirmation(href);
+    } else {
+      router.push(href);
+    }
+  };
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
@@ -52,10 +63,10 @@ export function Sidebar() {
           <ul className="space-y-2">
             {navigation.map((item) => (
               <li key={item.name}>
-                <Link
-                  href={item.href}
+                <button
+                  onClick={() => handleNavigation(item.href)}
                   className={cn(
-                    "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
                     pathname === item.href
                       ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -63,7 +74,7 @@ export function Sidebar() {
                 >
                   <item.icon className="w-5 h-5" />
                   <span>{item.name}</span>
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
@@ -78,10 +89,10 @@ export function Sidebar() {
 
               return (
                 <li key={item.name}>
-                  <Link
-                    href={item.href}
+                  <button
+                    onClick={() => handleNavigation(item.href)}
                     className={cn(
-                      "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                      "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors text-left",
                       isActive
                         ? "bg-blue-50 text-blue-700 font-medium"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -89,7 +100,7 @@ export function Sidebar() {
                   >
                     <item.icon className="w-4 h-4" />
                     <span>{item.name}</span>
-                  </Link>
+                  </button>
                 </li>
               );
             })}
@@ -99,10 +110,10 @@ export function Sidebar() {
 
       {/* Account */}
       <div className="p-4 border-t border-gray-200">
-        <Link
-          href="/dashboard/account"
+        <button
+          onClick={() => handleNavigation("/dashboard/account")}
           className={cn(
-            "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+            "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
             pathname === "/dashboard/account"
               ? "bg-blue-50 text-blue-700"
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -110,7 +121,7 @@ export function Sidebar() {
         >
           <User className="w-5 h-5" />
           <span>Account</span>
-        </Link>
+        </button>
       </div>
     </div>
   );

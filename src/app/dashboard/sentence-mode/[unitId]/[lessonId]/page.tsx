@@ -2,9 +2,10 @@
 
 import { SentencePractice } from "@/components/sentence-mode";
 import { useAuth } from "@/contexts/auth-context";
+import { useNavigationContext } from "@/contexts";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTimeTracker } from "@/hooks/useTimeTracker";
 
 interface LessonPracticePageProps {
@@ -16,7 +17,18 @@ interface LessonPracticePageProps {
 
 const LessonPracticePage = ({ params }: LessonPracticePageProps) => {
   const { user, loading } = useAuth();
+  const router = useRouter();
+  const { navigateWithConfirmation } = useNavigationContext();
   useTimeTracker("sentence-mode");
+
+  const handleBackNavigation = () => {
+    const backPath = `/dashboard/sentence-mode/${params.unitId}`;
+    if (navigateWithConfirmation) {
+      navigateWithConfirmation(backPath);
+    } else {
+      router.push(backPath);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -40,14 +52,14 @@ const LessonPracticePage = ({ params }: LessonPracticePageProps) => {
     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col">
         <div className="mb-4 flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link
-              href={`/dashboard/sentence-mode/${params.unitId}`}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Unit
-            </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBackNavigation}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Unit
           </Button>
         </div>
 

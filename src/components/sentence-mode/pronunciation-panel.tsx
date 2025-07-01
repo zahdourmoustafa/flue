@@ -14,6 +14,7 @@ interface PronunciationPanelProps {
   onNext: () => void;
   isLastSentence: boolean;
   onClose?: () => void;
+  isAnalyzing?: boolean;
 }
 
 const getScoreColor = (score: number) => {
@@ -52,6 +53,7 @@ export const PronunciationPanel = ({
   onNext,
   isLastSentence,
   onClose,
+  isAnalyzing = false,
 }: PronunciationPanelProps) => {
   const scoreColor = getScoreColor(feedback.overallScore);
   const scoreEmoji = getScoreEmoji(feedback.overallScore);
@@ -62,7 +64,15 @@ export const PronunciationPanel = ({
       className={`h-full flex flex-col border-2 shadow-xl rounded-2xl ${scoreBgColor}`}
     >
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-        <CardTitle className="text-base font-bold">Pronunciation</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-base font-bold">Pronunciation</CardTitle>
+          {isAnalyzing && (
+            <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+              <div className="animate-spin w-3 h-3 border border-blue-600 border-t-transparent rounded-full"></div>
+              <span>Enhancing...</span>
+            </div>
+          )}
+        </div>
         {onClose && (
           <Button
             variant="ghost"
