@@ -14,6 +14,14 @@ export const POST = async (req: Request) => {
       preferredLanguage,
     } = await req.json();
 
+    console.log("Profile update request:", {
+      userId,
+      learningLanguage,
+      languageLevel,
+      translationLanguage,
+      preferredLanguage,
+    });
+
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
@@ -39,7 +47,14 @@ export const POST = async (req: Request) => {
       updateData.preferredLanguage = preferredLanguage;
     }
 
-    await db.update(user).set(updateData).where(eq(user.id, userId));
+    console.log("Updating user profile with data:", updateData);
+
+    const result = await db
+      .update(user)
+      .set(updateData)
+      .where(eq(user.id, userId));
+
+    console.log("Profile update result:", result);
 
     const stats = await db.query.userStats.findFirst({
       where: eq(userStats.userId, userId),
@@ -52,12 +67,29 @@ export const POST = async (req: Request) => {
       });
     }
 
+    // Return the updated data for verification
+    const updatedUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+      columns: {
+        id: true,
+        learningLanguage: true,
+        languageLevel: true,
+        preferredLanguage: true,
+        translationLanguage: true,
+      },
+    });
+
+    console.log("✅ Profile updated successfully:", updatedUser);
+
     return NextResponse.json(
-      { message: "User profile updated successfully" },
+      {
+        message: "User profile updated successfully",
+        data: updatedUser,
+      },
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error updating user profile:", err);
+    console.error("❌ Error updating user profile:", err);
     return NextResponse.json(
       { error: "Failed to update user profile" },
       { status: 500 }

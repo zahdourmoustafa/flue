@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { OnboardingData } from "@/types/onboarding";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
   CardContent,
@@ -50,6 +51,7 @@ export const SignUpView = ({
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { refreshProfile } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -140,8 +142,14 @@ export const SignUpView = ({
         result.data?.user
       ) {
         try {
+          console.log("Updating profile with onboarding data:", {
+            userId: result.data.user.id,
+            learningLanguage: onboardingData.selectedLanguage.code,
+            languageLevel: onboardingData.selectedLevel.code,
+          });
+
           // Update user with onboarding data using a separate API call
-          await fetch("/api/auth/update-profile", {
+          const profileResponse = await fetch("/api/auth/update-profile", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -150,11 +158,38 @@ export const SignUpView = ({
               languageLevel: onboardingData.selectedLevel.code,
             }),
           });
+
+          if (!profileResponse.ok) {
+            const errorData = await profileResponse.json();
+            throw new Error(errorData.error || "Failed to update profile");
+          }
+
+          console.log("✅ Profile updated successfully with onboarding data");
+
+          // Verify the update by fetching the profile
+          const verifyResponse = await fetch("/api/user/profile");
+          if (verifyResponse.ok) {
+            const profileData = await verifyResponse.json();
+            console.log("✅ Profile verification:", {
+              learningLanguage: profileData.learningLanguage,
+              languageLevel: profileData.languageLevel,
+            });
+
+            // Refresh the auth context to ensure dashboard shows updated data
+            await refreshProfile();
+          }
         } catch (updateErr) {
-          console.warn(
-            "Failed to update profile with onboarding data:",
+          console.error(
+            "❌ Failed to update profile with onboarding data:",
             updateErr
           );
+
+          // Show error to user and don't redirect yet
+          setError(
+            `Account created successfully, but failed to save your language preference (${onboardingData.selectedLanguage.name}). You can set this in your profile settings.`
+          );
+          setIsEmailLoading(false);
+          return; // Don't redirect, let user know about the issue
         }
       }
 
