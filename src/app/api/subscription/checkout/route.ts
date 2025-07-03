@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         userId: userId,
       },
       success_url: absoluteUrl("/dashboard"),
-      cancel_url: pricingPageUrl,
+      cancel_url: absoluteUrl("/dashboard"),
       allow_promotion_codes: true,
     });
 
