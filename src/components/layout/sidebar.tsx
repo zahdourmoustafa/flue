@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useNavigationContext } from "@/contexts";
+import { useNavigationContext } from "@/contexts/navigation-context";
 import {
   Home,
   Compass,
@@ -15,7 +15,13 @@ import {
   User,
   Zap,
   Phone,
+  Crown,
+  Lock,
 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { SubscriptionStatusIndicator } from "../subscription/subscription-status-indicator";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -24,17 +30,49 @@ const navigation = [
 ];
 
 const learningModes = [
-  { name: "Chat", href: "/dashboard/chat", icon: MessageCircle },
-  { name: "Dialogue Mode", href: "/dashboard/dialogue", icon: Mic },
-  { name: "Sentence Mode", href: "/dashboard/sentence-mode", icon: Play },
-  { name: "Video Call", href: "/dashboard/videocall", icon: Video },
-  { name: "Call Mode", href: "/dashboard/call-mode", icon: Phone },
+  {
+    name: "Chat",
+    href: "/dashboard/chat",
+    icon: MessageCircle,
+    id: "chat",
+    premium: false,
+  },
+  {
+    name: "Dialogue Mode",
+    href: "/dashboard/dialogue",
+    icon: Mic,
+    id: "dialogue",
+    premium: true,
+  },
+  {
+    name: "Sentence Mode",
+    href: "/dashboard/sentence-mode",
+    icon: Play,
+    id: "sentence-mode",
+    premium: true,
+  },
+  {
+    name: "Video Call",
+    href: "/dashboard/videocall",
+    icon: Video,
+    id: "videocall",
+    premium: true,
+  },
+  {
+    name: "Call Mode",
+    href: "/dashboard/call-mode",
+    icon: Phone,
+    id: "call-mode",
+    premium: true,
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { navigateWithConfirmation } = useNavigationContext();
+  const { user } = useAuth();
+  const { hasFeatureAccess, isPremium, isTrialing } = useSubscription();
 
   const handleNavigation = (href: string) => {
     if (navigateWithConfirmation) {
@@ -86,20 +124,29 @@ export function Sidebar() {
             {learningModes.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(item.href + "/");
+              const hasAccess = hasFeatureAccess(item.id);
+              const isPremiumFeature = item.premium;
 
               return (
                 <li key={item.name}>
                   <button
                     onClick={() => handleNavigation(item.href)}
                     className={cn(
-                      "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors text-left",
+                      "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors text-left",
                       isActive
                         ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                      !hasAccess && isPremiumFeature && "opacity-60"
                     )}
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.name}</span>
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.name}</span>
+                    </div>
+
+                    {isPremiumFeature && !hasAccess && (
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                    )}
                   </button>
                 </li>
               );
@@ -122,6 +169,11 @@ export function Sidebar() {
           <User className="w-5 h-5" />
           <span>Account</span>
         </button>
+      </div>
+
+      <div className="flex flex-col gap-2 px-4 py-2 mt-auto">
+        <SubscriptionStatusIndicator />
+        {/* <UserButton user={user} /> */}
       </div>
     </div>
   );

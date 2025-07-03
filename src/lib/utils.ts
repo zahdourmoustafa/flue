@@ -48,3 +48,13 @@ export const getTTSLanguage = (learningLanguage: string | null): string => {
   console.log(`🔤 Language mapping: "${learningLanguage}" -> "${result}"`);
   return result;
 };
+
+export function absoluteUrl(path: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  if (!process.env.NEXT_PUBLIC_APP_URL) {
+    console.warn(
+      "⚠️ NEXT_PUBLIC_APP_URL is not set. Falling back to http://localhost:3000."
+    );
+  }
+  return `${baseUrl}${path}`;
+}

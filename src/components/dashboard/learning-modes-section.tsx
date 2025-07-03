@@ -27,7 +27,7 @@ const learningModes = [
     badge: "New",
   },
   {
-    id: "video-call",
+    id: "videocall",
     title: "Video Call",
     description:
       "Interactive video conversations with visual AI avatars for immersive speaking practice.",
@@ -38,7 +38,7 @@ const learningModes = [
     badge: "Popular",
   },
   {
-    id: "sentence",
+    id: "sentence-mode",
     title: "Sentence Builder",
     description:
       "Master grammar and sentence structure through interactive exercises and guided practice.",

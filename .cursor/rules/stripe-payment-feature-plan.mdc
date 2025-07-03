@@ -1,0 +1,142 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Stripe Subscription & Payment Feature Plan
+
+## 1. Overview
+
+This document outlines the plan to integrate Stripe for handling user subscriptions. The primary goal is to provide a 3-day free trial for new users, after which they will be required to subscribe to access premium features. Free-tier users will have limited access to the platform.
+
+---
+
+## 2. Database Schema Modifications
+
+To manage subscription details, we need to extend the `users` table in our database.
+
+**File:** `src/db/schema.ts`
+
+**Modifications:**
+Add the following columns to the `users` table schema:
+
+-   `stripeCustomerId` (text): To store the Stripe customer ID.
+-   `stripeSubscriptionId` (text): To store the Stripe subscription ID.
+-   `stripePriceId` (text): To store the ID of the subscribed price.
+-   `stripeCurrentPeriodEnd` (timestamp): To store the end date of the current billing period or trial.
+
+```typescript
+// src/db/schema.ts
+
+// ... existing users table definition
+export const users = pgTable("user", {
+    // ... existing columns
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    stripePriceId: text("stripe_price_id"),
+    stripeCurrentPeriodEnd: timestamp("stripe_current_period_end"),
+});
+```
+
+After modifying the schema, a new migration needs to be generated and applied.
+
+---
+
+## 3. Backend Implementation (API Routes)
+
+We will create several API endpoints to handle the subscription lifecycle.
+
+### a. `POST /api/subscription/checkout`
+
+-   **Purpose:** Creates a Stripe Checkout session and redirects the user to the Stripe-hosted payment page.
+-   **Logic:**
+    1.  Get the authenticated user.
+    2.  Check if the user already has a Stripe Customer ID (`stripeCustomerId`). If not, create one and save it to the user's record in the database.
+    3.  Create a Stripe Checkout Session.
+        -   Set `trial_period_days: 3`.
+        -   The `price` ID will be associated with the product ID `prod_Sc11inMBtMdTN4`. We need to create a price for this product in the Stripe dashboard and use its ID here.
+        -   Configure `success_url` and `cancel_url`.
+    4.  Return the session URL to the client for redirection.
+
+### b. `POST /api/subscription/portal`
+
+-   **Purpose:** Creates a Stripe Customer Portal session to allow users to manage their subscription.
+-   **Logic:**
+    1.  Get the authenticated user and their `stripeCustomerId`.
+    2.  Create a Stripe Billing Portal Session.
+    3.  Return the session URL to the client for redirection.
+
+### c. `POST /api/subscription/webhook`
+
+-   **Purpose:** Handles incoming webhooks from Stripe to keep our database in sync with subscription events.
+-   **Security:** Verify the webhook signature using `STRIPE_WEBHOOK_SECRET`.
+-   **Events to Handle:**
+    -   `checkout.session.completed`: When a user successfully subscribes for the first time. Save the `subscriptionId`, `priceId`, and `currentPeriodEnd` to the user's record.
+    -   `customer.subscription.updated`: When a subscription is changed (e.g., upgraded, downgraded, canceled, or payment fails). Update the `priceId` and `currentPeriodEnd` in our database.
+    -   `customer.subscription.deleted`: When a subscription is canceled. Nullify the subscription fields for the user.
+
+### d. `GET /api/subscription/status`
+
+-   **Purpose:** Provides the client-side with the current user's subscription status.
+-   **Logic:**
+    1.  Get the authenticated user.
+    2.  Query the user's subscription details from the database.
+    3.  Return a simplified status object, e.g., `{ isActive: boolean, isTrial: boolean, trialEndDate: Date | null }`.
+
+---
+
+## 4. Frontend Implementation
+
+### a. Subscription Context/Hook (`useSubscription.ts`)
+
+-   **File:** `src/hooks/useSubscription.ts`
+-   **Purpose:** A custom hook that fetches the user's subscription status from `/api/subscription/status` and provides it to components. It should use `react-query` (`useQuery`) for fetching and caching.
+
+### b. Trial & Upgrade Banner Component
+
+-   **File:** `src/components/subscription/subscription-status-indicator.tsx`
+-   **Purpose:** A UI component in the sidebar to show the user's current subscription status.
+-   **Logic:**
+    1.  Use the `useSubscription` hook to get the status (`isActive`, `isTrial`, `trialEndDate`).
+    2.  **If `isTrial` is true:** Display a banner: "⚠️ X days left in trial".
+    3.  **If `isActive` is true and `isTrial` is false:** The user is a paying customer. Display a "**PRO PLAN**" badge.
+    4.  **If `isActive` is false and `isTrial` is false:** This is a free-tier user. Display an "**Upgrade**" button.
+    5.  The "Upgrade" button triggers a mutation that calls `/api/subscription/checkout` and redirects the user to Stripe.
+
+-   **Integration:** This component will be added to `src/components/layout/sidebar.tsx`.
+
+### c. Subscription Guard (`subscription-guard.tsx`)
+
+-   **File:** `src/components/subscription/subscription-guard.tsx`
+-   **Purpose:** A wrapper component or HOC to protect premium features/routes.
+-   **Logic:**
+    1.  Use the `useSubscription` hook.
+    2.  If the user's subscription is not active, it will render a "premium" badge or an overlay prompting the user to upgrade. It will prevent interaction with the wrapped content.
+    3.  This guard will be applied to all premium learning modes (e.g., Sentence Mode, Call Mode, Video Call).
+
+### d. Account Page Integration
+
+-   **File:** `src/app/dashboard/account/page.tsx`
+-   **Purpose:** Add a "Manage Subscription" button.
+-   **Logic:**
+    1.  The button will be visible if the user has an active subscription.
+    2.  Clicking it will call the `/api/subscription/portal` endpoint and redirect the user.
+
+---
+
+## 5. User Flow & Access Control
+
+1.  **Onboarding (Free Tier):** A new user signs up. They are on the Free Tier with `NULL` Stripe values. Their access is limited to Chat Mode. Other modes are disabled and show a "Premium" badge. A simple "Upgrade" button is visible.
+2.  **Upgrade Action (Trial Start):** The user clicks "Upgrade". They are sent to the Stripe Checkout page, which is configured for a 3-day trial. They enter their payment details to start the trial. They are not charged yet.
+3.  **Trial Period:**
+    -   Upon successful submission on Stripe, the user is redirected back to the app. A webhook from Stripe (`checkout.session.completed`) updates the user's status in our DB. Their subscription is now in a `trialing` state.
+    -   The UI updates: The "Upgrade" button now shows a trial status banner ("X days left in trial"), and all premium features are unlocked.
+4.  **End of Trial:**
+    -   **Successful Payment:** If the user does not cancel, Stripe automatically charges their card at the end of the trial. A webhook (`customer.subscription.updated`) updates their `stripeCurrentPeriodEnd` in our DB. Their premium access continues uninterrupted. The trial banner is replaced by a "**PRO PLAN**" badge.
+    -   **Cancellation:** If the user cancels during the trial (via the Stripe Customer Portal), their premium access will be revoked at the end of the trial period. Their account reverts to the Free Tier, and the "Upgrade" button reappears.
+5.  **Subscription Management:** A paying user can go to their account page to manage their subscription via the Stripe Customer Portal.
+
+
+
+
+

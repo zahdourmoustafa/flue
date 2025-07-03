@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -9,62 +8,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ALL_LANGUAGES } from "@/types/onboarding";
 import ReactCountryFlag from "react-country-flag";
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  preferredLanguage?: string;
-  translationLanguage?: string;
-  learningLanguage?: string;
-  languageLevel?: string;
-  image?: string;
-}
+import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 interface SettingsPanelProps {
-  isOpen: boolean;
   onClose: () => void;
-  userData: UserData | null;
-  onTranslationLanguageUpdate: (lang: string) => void;
-  onTargetLanguageUpdate: (lang: string) => void;
-  onTargetLanguageClick?: () => void; // Keep for backward compatibility if needed
 }
 
-export const SettingsPanel = ({
-  isOpen,
-  onClose,
-  userData,
-  onTranslationLanguageUpdate,
-  onTargetLanguageUpdate,
-}: SettingsPanelProps) => {
-  const getLearningLanguage = () => {
-    if (!userData?.learningLanguage) return null;
-    return ALL_LANGUAGES.find(
-      (lang) => lang.code === userData.learningLanguage
-    );
+export const SettingsPanel = ({ onClose }: SettingsPanelProps) => {
+  const { user: userData, updateUser } = useAuth();
+  const { toast } = useToast();
+
+  const handleLanguageUpdate = async (
+    type: "learningLanguage" | "translationLanguage",
+    languageCode: string
+  ) => {
+    if (!userData?.id) return;
+
+    try {
+      const response = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userData.id,
+          [type]: languageCode,
+        }),
+      });
+
+      if (response.ok) {
+        updateUser({ [type]: languageCode });
+        const languageName =
+          ALL_LANGUAGES.find((l) => l.code === languageCode)?.name ||
+          languageCode;
+        toast({
+          title: `${
+            type === "learningLanguage" ? "Target" : "Translation"
+          } language updated`,
+          description: `Language changed to ${languageName}.`,
+        });
+      } else {
+        throw new Error(`Failed to update ${type}`);
+      }
+    } catch (error) {
+      console.error(`Error updating ${type}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to update your ${type}. Please try again.`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const getLanguageFlag = (langCode: string) => {
+  const getLanguageFlag = (langCode: string | undefined) => {
+    if (!langCode) return "GB";
     const lang = ALL_LANGUAGES.find((l) => l.code === langCode);
     return lang?.countryCode || "GB";
   };
 
-  const getLanguageName = (langCode: string) => {
+  const getLanguageName = (langCode: string | undefined) => {
+    if (!langCode) return "Select a language";
     const lang = ALL_LANGUAGES.find((l) => l.code === langCode);
     return lang?.name || "Select a language";
   };
 
-  const learningLanguage = getLearningLanguage();
-
   return (
-    <div
-      className={`fixed top-0 right-0 h-full w-1/2 bg-white border-l border-gray-200 p-6 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "translate-x-full"
-      }`}
-    >
+    <div className="h-full w-full p-6">
       {/* Settings Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button
@@ -86,24 +97,24 @@ export const SettingsPanel = ({
         </h3>
         <Select
           value={userData?.translationLanguage || "en"}
-          onValueChange={onTranslationLanguageUpdate}
+          onValueChange={(value) =>
+            handleLanguageUpdate("translationLanguage", value)
+          }
         >
           <SelectTrigger className="w-full p-4 h-auto border border-gray-200 rounded-lg hover:border-gray-300 transition-colors bg-white">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
                 <ReactCountryFlag
-                  countryCode={getLanguageFlag(
-                    userData?.translationLanguage || "en"
-                  )}
+                  countryCode={getLanguageFlag(userData?.translationLanguage)}
                   svg
                   style={{
                     width: "2em",
                     height: "1.5em",
                   }}
-                  title={getLanguageName(userData?.translationLanguage || "en")}
+                  title={getLanguageName(userData?.translationLanguage)}
                 />
                 <span className="text-sm font-medium">
-                  {getLanguageName(userData?.translationLanguage || "en")}
+                  {getLanguageName(userData?.translationLanguage)}
                 </span>
               </div>
             </div>
@@ -132,26 +143,24 @@ export const SettingsPanel = ({
         </h3>
         <Select
           value={userData?.learningLanguage || ""}
-          onValueChange={onTargetLanguageUpdate}
+          onValueChange={(value) =>
+            handleLanguageUpdate("learningLanguage", value)
+          }
         >
           <SelectTrigger className="w-full p-4 h-auto border border-gray-200 rounded-lg hover:border-gray-300 transition-colors bg-white">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
-                {learningLanguage ? (
-                  <ReactCountryFlag
-                    countryCode={learningLanguage.countryCode || "GB"}
-                    svg
-                    style={{
-                      width: "2em",
-                      height: "1.5em",
-                    }}
-                    title={learningLanguage.name}
-                  />
-                ) : (
-                  <span className="text-2xl">🌍</span>
-                )}
+                <ReactCountryFlag
+                  countryCode={getLanguageFlag(userData?.learningLanguage)}
+                  svg
+                  style={{
+                    width: "2em",
+                    height: "1.5em",
+                  }}
+                  title={getLanguageName(userData?.learningLanguage)}
+                />
                 <span className="text-sm font-medium">
-                  {learningLanguage?.name || "Select a language"}
+                  {getLanguageName(userData?.learningLanguage)}
                 </span>
               </div>
             </div>

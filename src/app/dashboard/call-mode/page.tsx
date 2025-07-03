@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CallInterface } from "@/components/call-mode/CallInterface";
 import { useAuth } from "@/contexts/auth-context";
 import { useTimeTracker } from "@/hooks/useTimeTracker";
+import { SubscriptionGuard } from "@/components/subscription/subscription-guard";
 
 const CallModePage = () => {
   const { user } = useAuth();
@@ -29,9 +30,11 @@ const CallModePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <CallInterface user={user} />
-    </div>
+    <SubscriptionGuard featureName="Call Mode">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <CallInterface user={user} />
+      </div>
+    </SubscriptionGuard>
   );
 };
 

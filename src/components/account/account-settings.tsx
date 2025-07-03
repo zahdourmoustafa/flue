@@ -13,8 +13,6 @@ import { useAuth } from "@/contexts/auth-context";
 // Import the new components
 import { ProfilePanel } from "./profile-panel";
 import { SettingsPanel } from "./settings-panel";
-import { PersonalDetailsPanel } from "./personal-details-panel";
-import { TargetLanguageCard } from "./target-language-card";
 import { AccountMenu } from "./account-menu";
 
 export const AccountSettings = () => {
@@ -22,12 +20,10 @@ export const AccountSettings = () => {
   const { toast } = useToast();
   const { user: userData, loading, updateUser } = useAuth();
 
-  // Panel state management
-  const [isLanguageSelectorOpen, setIsLanguageSelectorOpen] = useState(false);
   const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isPersonalDetailsOpen, setIsPersonalDetailsOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<"profile" | "settings" | null>(
+    null
+  );
 
   // Event handlers
   const handleLogout = async () => {
@@ -77,7 +73,7 @@ export const AccountSettings = () => {
 
       if (response.ok) {
         updateUser({ learningLanguage: languageCode });
-        setIsLanguageSelectorOpen(false);
+        setActivePanel(null);
         toast({
           title: "Language updated",
           description: `Your target language has been changed to ${
@@ -148,7 +144,7 @@ export const AccountSettings = () => {
       {/* Main Account Settings */}
       <div
         className={`p-6 transition-all duration-300 ease-in-out ${
-          isProfileOpen || isSettingsOpen ? "w-1/2" : "w-full"
+          activePanel ? "w-1/2" : "w-full"
         }`}
       >
         {/* Header */}
@@ -165,16 +161,10 @@ export const AccountSettings = () => {
           <h1 className="text-2xl font-bold text-gray-900">Account</h1>
         </div>
 
-        {/* Target Language Card */}
-        <TargetLanguageCard
-          userData={userData}
-          onTargetLanguageUpdate={handleLanguageSelect}
-        />
-
         {/* Account Menu */}
         <AccountMenu
-          onProfileClick={() => setIsProfileOpen(true)}
-          onSettingsClick={() => setIsSettingsOpen(true)}
+          onProfileClick={() => setActivePanel("profile")}
+          onSettingsClick={() => setActivePanel("settings")}
           onLogout={handleLogout}
         />
 
@@ -201,38 +191,24 @@ export const AccountSettings = () => {
         </div>
       </div>
 
-      {/* Profile Panel */}
-      <ProfilePanel
-        isOpen={isProfileOpen && !isPersonalDetailsOpen}
-        onClose={() => setIsProfileOpen(false)}
-        onPersonalDetailsClick={() => setIsPersonalDetailsOpen(true)}
-      />
-
-      {/* Settings Panel */}
-      <SettingsPanel
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        userData={userData}
-        onTranslationLanguageUpdate={handleTranslationLanguageUpdate}
-        onTargetLanguageUpdate={handleLanguageSelect}
-        onTargetLanguageClick={() => setIsLanguageSelectorOpen(true)}
-      />
-
-      {/* Personal Details Panel */}
-      <PersonalDetailsPanel
-        isOpen={isPersonalDetailsOpen}
-        onClose={() => setIsPersonalDetailsOpen(false)}
-        userData={userData}
-      />
-
-      {/* Language Selector Modal */}
-      <LanguageSelector
-        isOpen={isLanguageSelectorOpen}
-        onClose={() => setIsLanguageSelectorOpen(false)}
-        currentLanguage={userData?.learningLanguage}
-        onLanguageSelect={handleLanguageSelect}
-        isLoading={isUpdatingLanguage}
-      />
+      {/* Side Panels */}
+      <div
+        className={`absolute top-0 right-0 h-full bg-gray-50 border-l border-gray-200 transition-all duration-300 ease-in-out ${
+          activePanel ? "w-1/2" : "w-0"
+        } overflow-hidden`}
+      >
+        {activePanel === "profile" && (
+          <ProfilePanel
+            onClose={() => setActivePanel(null)}
+            onOpenPersonalDetails={() => {
+              /* This can be implemented if needed */
+            }}
+          />
+        )}
+        {activePanel === "settings" && (
+          <SettingsPanel onClose={() => setActivePanel(null)} />
+        )}
+      </div>
     </div>
   );
 };

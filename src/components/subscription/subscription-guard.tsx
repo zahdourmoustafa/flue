@@ -1,84 +1,78 @@
 "use client";
 
-import { useSubscription } from "@/hooks/useSubscription";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Crown, Zap } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Lock, Crown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
+
+async function fetchSubscriptionStatus() {
+  const res = await fetch("/api/subscription/status");
+  if (!res.ok) {
+    throw new Error("Failed to fetch subscription status");
+  }
+  return res.json();
+}
+
+async function handleUpgrade() {
+  const res = await fetch("/api/subscription/checkout", {
+    method: "POST",
+  });
+  const { url } = await res.json();
+  window.location.href = url;
+}
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
-  featureId: string;
-  fallback?: React.ReactNode;
+  featureName: string;
 }
 
-export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
+export const SubscriptionGuard = ({
   children,
-  featureId,
-  fallback,
-}) => {
-  const { requiresPremium, hasAccess, startSubscription, isCreatingCheckout } =
-    useSubscription();
+  featureName,
+}: SubscriptionGuardProps) => {
+  const router = useRouter();
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["subscriptionStatus"],
+    queryFn: fetchSubscriptionStatus,
+  });
 
-  const needsPremium = requiresPremium(featureId);
-
-  // If feature doesn't require premium, show content
-  if (!needsPremium) {
-    return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="relative w-full h-full">
+        <div className="blur-sm">{children}</div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Skeleton className="w-48 h-24 rounded-lg" />
+        </div>
+      </div>
+    );
   }
 
-  // If user has access (premium or trial), show content
-  if (hasAccess) {
-    return <>{children}</>;
-  }
-
-  // Show fallback or default premium prompt
-  if (fallback) {
-    return <>{fallback}</>;
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="max-w-md w-full text-center">
-        <CardHeader>
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center mb-4">
-            <Crown className="w-8 h-8 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Premium Feature</CardTitle>
-          <CardDescription className="text-lg">
-            Upgrade to Premium to unlock all learning modes and advanced
-            features
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-center text-sm text-gray-600">
-              <Zap className="w-4 h-4 mr-2" />
-              3-day free trial included
+  if (!data?.isActive || isError) {
+    return (
+      <div className="relative w-full h-full group">
+        <div className="blur-sm transition-all duration-300 group-hover:blur-md">
+          {children}
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm bg-opacity-50 transition-all duration-300 opacity-0 group-hover:opacity-100">
+          <div className="bg-background/80 p-6 rounded-xl shadow-lg text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Crown className="h-6 w-6 text-yellow-500 mr-2" />
+              <h3 className="text-lg font-bold">Premium Feature</h3>
             </div>
-            <div className="text-3xl font-bold text-gray-900">
-              $10
-              <span className="text-lg font-normal text-gray-600">/month</span>
-            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Unlock {featureName} and all other features by upgrading.
+            </p>
+            <Button onClick={handleUpgrade}>Upgrade to Pro</Button>
           </div>
-          <Button
-            onClick={startSubscription}
-            disabled={isCreatingCheckout}
-            className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white"
-            size="lg"
-          >
-            {isCreatingCheckout ? "Loading..." : "Start Free Trial"}
-          </Button>
-          <p className="text-xs text-gray-500">
-            Cancel anytime. No commitment required.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        </div>
+        {/* Default lock icon when not hovered */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-all duration-300 group-hover:opacity-0">
+          <Lock className="h-12 w-12 text-white/50" />
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };

@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { getStripe } from "@/lib/stripe";
 
 export interface SubscriptionStatus {
-  hasSubscription: boolean;
   isActive: boolean;
-  inTrial: boolean;
-  trialDaysLeft: number;
-  status: string;
-  currentPeriodEnd?: string;
-  cancelAtPeriodEnd: boolean;
+  isTrial: boolean;
+  trialEndDate?: string;
+  daysLeftInTrial: number;
 }
+
+// Define which features require premium access
+const PREMIUM_FEATURES = [
+  "dialogue",
+  "sentence-mode",
+  "call-mode",
+  "videocall",
+];
 
 export const useSubscription = () => {
   // Get subscription status
@@ -22,7 +25,7 @@ export const useSubscription = () => {
     error,
     refetch,
   } = useQuery<SubscriptionStatus>({
-    queryKey: ["subscription-status"],
+    queryKey: ["subscriptionStatus"],
     queryFn: async () => {
       const response = await fetch("/api/subscription/status");
       if (!response.ok) {
@@ -50,22 +53,29 @@ export const useSubscription = () => {
       return response.json();
     },
     onSuccess: async (data) => {
-      const stripe = await getStripe();
-      if (stripe && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (data.url) {
+        window.location.href = data.url;
       }
     },
   });
 
-  // Helper functions - ALL FEATURES ARE NOW FREE
-  const isPremium = true; // Always return true for premium status
-  const isTrialing = false; // No need for trial since everything is free
-  const hasAccess = true; // Always has access to everything
-  const trialDaysLeft = 0; // No trial needed
+  // Helper functions
+  const isPremium = subscriptionStatus?.isActive || false;
+  const isTrialing = subscriptionStatus?.isTrial || false;
+  const hasAccess = isPremium || isTrialing;
+  const trialDaysLeft = subscriptionStatus?.daysLeftInTrial || 0;
 
-  // Check if a feature requires premium - ALWAYS RETURN FALSE (everything is free)
+  // Check if a feature requires premium access
   const requiresPremium = (featureId: string): boolean => {
-    return false; // All features are now free
+    return PREMIUM_FEATURES.includes(featureId);
+  };
+
+  // Check if user has access to a specific feature
+  const hasFeatureAccess = (featureId: string): boolean => {
+    if (!requiresPremium(featureId)) {
+      return true; // Free features
+    }
+    return hasAccess; // Premium features require subscription
   };
 
   // Start subscription flow
@@ -83,6 +93,7 @@ export const useSubscription = () => {
     hasAccess,
     trialDaysLeft,
     requiresPremium,
+    hasFeatureAccess,
     startSubscription,
     isCreatingCheckout: createCheckoutMutation.isPending,
     checkoutError: createCheckoutMutation.error,

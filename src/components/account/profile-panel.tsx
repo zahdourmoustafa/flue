@@ -4,22 +4,20 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Lock, Mail, Bell, Trash2 } from "lucide-react";
 
 interface ProfilePanelProps {
-  isOpen: boolean;
   onClose: () => void;
-  onPersonalDetailsClick: () => void;
+  onOpenPersonalDetails: () => void;
 }
 
 export const ProfilePanel = ({
-  isOpen,
   onClose,
-  onPersonalDetailsClick,
+  onOpenPersonalDetails,
 }: ProfilePanelProps) => {
   const profileOptions = [
     {
       icon: User,
       title: "Personal details",
       description: "Manage your personal details below.",
-      action: onPersonalDetailsClick,
+      action: onOpenPersonalDetails,
     },
     {
       icon: Lock,
@@ -49,11 +47,7 @@ export const ProfilePanel = ({
   ];
 
   return (
-    <div
-      className={`fixed top-0 right-0 h-full w-1/2 bg-white border-l border-gray-200 p-6 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "translate-x-full"
-      }`}
-    >
+    <div className="h-full w-full p-6">
       {/* Profile Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button

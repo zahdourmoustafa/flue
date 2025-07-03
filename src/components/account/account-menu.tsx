@@ -25,22 +25,10 @@ export const AccountMenu = ({
       action: onProfileClick,
     },
     {
-      icon: Sliders,
-      title: "Personalization",
-      description: "Adapt the app for your needs.",
-      href: "/dashboard/account/personalization",
-    },
-    {
       icon: Settings,
       title: "Settings",
       description: "Manage your account settings.",
       action: onSettingsClick,
-    },
-    {
-      icon: CreditCard,
-      title: "Subscriptions",
-      description: "Manage your subscriptions.",
-      href: "/dashboard/account/subscriptions",
     },
   ];
 
