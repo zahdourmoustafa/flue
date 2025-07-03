@@ -126,17 +126,24 @@ export function Sidebar() {
                 pathname === item.href || pathname.startsWith(item.href + "/");
               const hasAccess = hasFeatureAccess(item.id);
               const isPremiumFeature = item.premium;
+              const isDisabled = isPremiumFeature && !hasAccess;
 
               return (
                 <li key={item.name}>
                   <button
-                    onClick={() => handleNavigation(item.href)}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        handleNavigation(item.href);
+                      }
+                    }}
+                    disabled={isDisabled}
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors text-left",
                       isActive
                         ? "bg-blue-50 text-blue-700 font-medium"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                      !hasAccess && isPremiumFeature && "opacity-60"
+                      isDisabled &&
+                        "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-600"
                     )}
                   >
                     <div className="flex items-center space-x-3">
@@ -155,6 +162,11 @@ export function Sidebar() {
         </div>
       </nav>
 
+      {/* Subscription Status */}
+      <div className="px-4 pb-4">
+        <SubscriptionStatusIndicator />
+      </div>
+
       {/* Account */}
       <div className="p-4 border-t border-gray-200">
         <button
@@ -169,11 +181,6 @@ export function Sidebar() {
           <User className="w-5 h-5" />
           <span>Account</span>
         </button>
-      </div>
-
-      <div className="flex flex-col gap-2 px-4 py-2 mt-auto">
-        <SubscriptionStatusIndicator />
-        {/* <UserButton user={user} /> */}
       </div>
     </div>
   );
