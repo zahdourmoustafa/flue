@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ALL_LANGUAGES } from "@/types/onboarding";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -57,4 +58,39 @@ export function absoluteUrl(path: string) {
     );
   }
   return `${baseUrl}${path}`;
+}
+
+// Helper to validate onboarding data is properly saved
+export function validateOnboardingData(user: {
+  learningLanguage?: string | null;
+  languageLevel?: string | null;
+}) {
+  const issues = [];
+
+  if (!user.learningLanguage) {
+    issues.push(
+      "Target language not set - this should have been saved during onboarding"
+    );
+  } else {
+    const language = ALL_LANGUAGES.find(
+      (lang) => lang.code === user.learningLanguage
+    );
+    if (!language) {
+      issues.push(`Invalid language code: ${user.learningLanguage}`);
+    }
+  }
+
+  if (!user.languageLevel) {
+    issues.push(
+      "Language level not set - this should have been saved during onboarding"
+    );
+  }
+
+  return {
+    isValid: issues.length === 0,
+    issues,
+    language: user.learningLanguage
+      ? ALL_LANGUAGES.find((lang) => lang.code === user.learningLanguage)
+      : null,
+  };
 }

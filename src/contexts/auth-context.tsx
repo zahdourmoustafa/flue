@@ -40,6 +40,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   refreshUser: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   updateUser: (updates: Partial<UserData>) => void;
   updateStats: (updates: Partial<UserStats>) => void;
   clearSession: () => Promise<void>;
@@ -217,7 +218,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const refreshUser = async () => {
-    await fetchUser(); // Always fetch fresh data
+    await fetchUser();
+  };
+
+  const refreshProfile = async () => {
+    if (!user?.id) return;
+
+    try {
+      console.log("Refreshing user profile data...");
+      const profileResponse = await fetch("/api/user/profile");
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        // Merge current user data with fresh profile data
+        const updatedUser = {
+          ...user,
+          learningLanguage: profileData.learningLanguage,
+          languageLevel: profileData.languageLevel,
+          preferredLanguage: profileData.preferredLanguage,
+        };
+        setUser(updatedUser);
+        console.log("✅ Profile refreshed successfully:", {
+          learningLanguage: updatedUser.learningLanguage,
+          languageLevel: updatedUser.languageLevel,
+        });
+      } else {
+        console.warn("Failed to refresh user profile");
+      }
+    } catch (error) {
+      console.error("Error refreshing user profile:", error);
+    }
   };
 
   const updateUser = (updates: Partial<UserData>) => {
@@ -286,6 +315,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     error,
     refreshUser,
+    refreshProfile,
     updateUser,
     updateStats,
     clearSession,
