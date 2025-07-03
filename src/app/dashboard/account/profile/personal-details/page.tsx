@@ -54,11 +54,16 @@ export default function PersonalDetailsPage() {
         body: JSON.stringify({
           userId: user.id,
           learningLanguage: languageCode,
+          languageLevel: user.languageLevel || "beginner",
         }),
       });
 
       if (response.ok) {
-        updateUser({ learningLanguage: languageCode });
+        const updatedData = {
+          learningLanguage: languageCode,
+          languageLevel: user.languageLevel || "beginner",
+        };
+        updateUser(updatedData);
         setIsLanguageSelectorOpen(false);
         const languageName =
           ALL_LANGUAGES.find((l) => l.code === languageCode)?.name ||

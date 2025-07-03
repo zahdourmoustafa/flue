@@ -52,9 +52,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({ userName }) => {
 
             <Button
               variant="secondary"
-              onClick={() =>
-                router.push("/dashboard/account/profile/personal-details")
-              }
+              onClick={() => router.push("/dashboard/account")}
               className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm transition-all duration-300 hover:scale-105"
             >
               <span>Set Target Language</span>
