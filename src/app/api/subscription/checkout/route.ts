@@ -6,8 +6,6 @@ import { eq } from "drizzle-orm";
 import { user as usersTable } from "@/db/schema";
 import { absoluteUrl } from "@/lib/utils";
 
-const pricingPageUrl = absoluteUrl("/pricing");
-
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers });
@@ -71,7 +69,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         userId: userId,
       },
-      success_url: absoluteUrl("/dashboard"),
+      success_url: absoluteUrl("dashboard"),
       cancel_url: absoluteUrl("dashboard"),
       allow_promotion_codes: true,
     });
