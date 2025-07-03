@@ -93,24 +93,50 @@ const videoCallScenarios = [
   {
     id: "family-dinner",
     title: "Family Dinner",
-    description: "Share stories and connect with family members",
+    description: "Engage in natural, heartwarming conversations with family",
     difficulty: "Basics",
     duration: "15-20 min",
     category: "Social",
-    gradient: "from-yellow-500 via-orange-600 to-red-600",
+    gradient: "from-rose-500 via-pink-600 to-fuchsia-700",
     imageUrl: "/images/scenarios/family-dinner.jpg",
-    skills: ["Family Topics", "Storytelling", "Personal Life"],
+    skills: ["Storytelling", "Personal Updates", "Active Listening"],
+    enabled: true,
   },
   {
-    id: "tech-support",
-    title: "Technical Support Call",
-    description: "Explain technical issues and follow troubleshooting steps",
+    id: "travel-planning",
+    title: "Travel Planning",
+    description: "Organize trips and discuss travel details with an agent",
     difficulty: "Intermediate",
-    duration: "15-20 min",
+    duration: "20-25 min",
     category: "Services",
-    gradient: "from-blue-500 via-indigo-600 to-purple-700",
+    gradient: "from-sky-500 via-blue-600 to-indigo-700",
+    imageUrl: "/images/scenarios/travel.jpg",
+    skills: ["Booking", "Itinerary", "Budgeting", "Negotiation"],
+    enabled: true,
+  },
+  {
+    id: "shopping-trip",
+    title: "Shopping Trip",
+    description: "Go shopping and discuss your preferences with a salesperson",
+    difficulty: "Basics",
+    duration: "15-20 min",
+    category: "Social",
+    gradient: "from-teal-500 via-cyan-600 to-blue-700",
+    imageUrl: "/images/scenarios/shopping-trip.jpg",
+    skills: ["Shopping", "Product Discussion", "Negotiation"],
+    enabled: true,
+  },
+  {
+    id: "tech-support-call",
+    title: "Tech Support Call",
+    description: "Troubleshoot technical issues with a support agent",
+    difficulty: "Intermediate",
+    duration: "20-25 min",
+    category: "Services",
+    gradient: "from-gray-500 via-gray-600 to-slate-700",
     imageUrl: "/images/scenarios/tech-support.jpg",
-    skills: ["Technical Vocabulary", "Problem Description", "Instructions"],
+    skills: ["Problem Solving", "Technical Vocabulary", "Patience"],
+    enabled: true,
   },
   {
     id: "networking-event",
@@ -149,6 +175,18 @@ const videoCallScenarios = [
     imageUrl: "/images/scenarios/language-exchange.jpg",
     skills: ["Cultural Exchange", "Teaching", "Mutual Learning"],
   },
+  {
+    id: "restaurant-ordering",
+    title: "Restaurant Ordering",
+    description: "Order food and discuss your preferences with a waiter",
+    difficulty: "Basics",
+    duration: "15-20 min",
+    category: "Social",
+    gradient: "from-teal-500 via-cyan-600 to-blue-700",
+    imageUrl: "/images/scenarios/restaurant-ordering.jpg",
+    skills: ["Ordering", "Food Discussion", "Negotiation"],
+    enabled: true,
+  },
 ];
 
 export const VideoCallScenariosContent: React.FC = () => {
@@ -186,15 +224,8 @@ export const VideoCallScenariosContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Scenarios Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {videoCallScenarios.map((scenario) => (
-            <VideoCallScenarioCard key={scenario.id} {...scenario} />
-          ))}
-        </div>
-
-        {/* Bottom Info Section */}
-        <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-3xl border border-blue-100/50">
+        {/* How it Works Section */}
+        <div className="mb-12 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-3xl border border-blue-100/50">
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-900 mb-3">
               🎥 How Video Call Practice Works
@@ -212,7 +243,7 @@ export const VideoCallScenariosContent: React.FC = () => {
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Choose Scenario
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-500 text-sm">
                   Select from professional, social, or service-based
                   conversations
                 </p>
@@ -224,7 +255,7 @@ export const VideoCallScenariosContent: React.FC = () => {
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Start Video Call
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-500 text-sm">
                   Connect with your AI partner and begin the conversation
                 </p>
               </div>
@@ -235,12 +266,19 @@ export const VideoCallScenariosContent: React.FC = () => {
                 <h4 className="font-semibold text-gray-900 mb-2">
                   Practice & Improve
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-500 text-sm">
                   Receive feedback and build confidence in real-time
                 </p>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Scenarios Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {videoCallScenarios.map((scenario) => (
+            <VideoCallScenarioCard key={scenario.id} {...scenario} />
+          ))}
         </div>
       </div>
     </div>

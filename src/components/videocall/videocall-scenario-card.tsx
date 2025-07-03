@@ -60,15 +60,47 @@ export const VideoCallScenarioCard: React.FC<VideoCallScenarioCardProps> = ({
 }) => {
   const router = useRouter();
 
+  // Currently supported scenarios with dynamic prompts
+  const isEnabled = [
+    "job-interview",
+    "doctor-appointment",
+    "business-meeting",
+    "coffee-shop",
+    "first-date",
+    "university-interview",
+    "bank-visit",
+    "family-dinner",
+    "travel-planning",
+    "shopping-trip",
+    "tech-support-call",
+    "networking-event",
+    "real-estate",
+    "language-exchange",
+    "restaurant-ordering"
+  ].includes(id);
+
   const handleStartCall = () => {
+    if (!isEnabled) {
+      // You could show a toast or modal here
+      return;
+    }
     router.push(`/dashboard/videocall/call/${id}`);
   };
+
   return (
-    <Card className="h-full hover:shadow-2xl transition-all duration-500 border-0 overflow-hidden group hover:scale-105 cursor-pointer">
+    <Card
+      className={`h-full transition-all duration-500 border-0 overflow-hidden group ${
+        isEnabled
+          ? "hover:shadow-2xl hover:scale-105 cursor-pointer"
+          : "opacity-60 cursor-not-allowed"
+      }`}
+    >
       <CardContent className="p-0 h-full flex flex-col">
         {/* Header Section with Gradient Background */}
         <div
-          className={`relative h-48 bg-gradient-to-br ${gradient} overflow-hidden`}
+          className={`relative h-48 bg-gradient-to-br ${gradient} overflow-hidden ${
+            !isEnabled && "grayscale"
+          }`}
         >
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-black/10" />
@@ -79,7 +111,11 @@ export const VideoCallScenarioCard: React.FC<VideoCallScenarioCardProps> = ({
           {/* Content */}
           <div className="relative p-6 h-full flex flex-col justify-between">
             <div className="flex items-start justify-between">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <div
+                className={`w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center transition-transform duration-300 ${
+                  isEnabled ? "group-hover:scale-110" : ""
+                }`}
+              >
                 <Video className="w-6 h-6 text-white" />
               </div>
               <Badge
@@ -127,11 +163,18 @@ export const VideoCallScenarioCard: React.FC<VideoCallScenarioCardProps> = ({
           {/* CTA Button */}
           <Button
             onClick={handleStartCall}
-            className="w-full group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:text-white transition-all duration-300 bg-gray-50 text-gray-700 hover:bg-gray-100 border-0 shadow-sm"
+            disabled={!isEnabled}
+            className={`w-full transition-all duration-300 border-0 shadow-sm ${
+              isEnabled
+                ? "group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:text-white bg-gray-50 text-gray-700 hover:bg-gray-100"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
             variant="outline"
           >
-            <span>Start Video Call</span>
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+            <span>{isEnabled ? "Start Video Call" : "Coming Soon"}</span>
+            {isEnabled && (
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+            )}
           </Button>
         </div>
       </CardContent>

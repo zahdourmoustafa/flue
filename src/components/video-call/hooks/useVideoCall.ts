@@ -14,7 +14,7 @@ export const useVideoCall = () => {
   }, []);
 
   const createConversation = useCallback(
-    async (scenarioId: string, language = "english") => {
+    async (scenarioId: string, language?: string) => {
       setIsLoading(true);
       setError(null);
 
@@ -27,7 +27,7 @@ export const useVideoCall = () => {
           },
           body: JSON.stringify({
             scenarioId,
-            language,
+            ...(language && { language }), // Only include language if explicitly provided
           }),
         });
 

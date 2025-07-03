@@ -48,34 +48,5 @@ export const useUserProfile = (): UseUserProfileReturn => {
   };
 };
 
-// Helper function to convert learning language to TTS language format
-export const getTTSLanguage = (learningLanguage: string | null): string => {
-  if (!learningLanguage) return "english";
-
-  const languageMap: Record<string, string> = {
-    es: "spanish",
-    en: "english",
-    fr: "french",
-    de: "german",
-    it: "italian",
-    pt: "portuguese",
-    ja: "japanese",
-    ko: "korean",
-    zh: "chinese",
-    ar: "arabic",
-    ru: "russian",
-    spanish: "spanish",
-    english: "english",
-    french: "french",
-    german: "german",
-    italian: "italian",
-    portuguese: "portuguese",
-    japanese: "japanese",
-    korean: "korean",
-    chinese: "chinese",
-    arabic: "arabic",
-    russian: "russian",
-  };
-
-  return languageMap[learningLanguage.toLowerCase()] || "english";
-};
+// Re-export getTTSLanguage from utils for backward compatibility
+export { getTTSLanguage } from "@/lib/utils";

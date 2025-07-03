@@ -46,6 +46,35 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-10">
+            {/* Daily Learning Goal Section */}
+            <div className="p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-3xl border border-blue-100/50">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  🎯 Daily Learning Goal
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You've completed{" "}
+                  <span className="font-semibold text-blue-600">
+                    {userStats.totalMinutes}
+                  </span>{" "}
+                  minutes today. Keep going to reach your 30-minute goal!
+                </p>
+                <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        (userStats.totalMinutes / 30) * 100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  {Math.max(30 - userStats.totalMinutes, 0)} minutes remaining
+                </p>
+              </div>
+            </div>
             <LearningModesSection />
           </div>
 
@@ -68,36 +97,6 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
               streakDays={userStats.streakDays}
               lessonsCompleted={userStats.lessonsCompleted}
             />
-          </div>
-        </div>
-
-        {/* Bottom Section - Quick Actions */}
-        <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-indigo-500/5 rounded-3xl border border-blue-100/50">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              🎯 Daily Learning Goal
-            </h3>
-            <p className="text-gray-600 mb-6">
-              You've completed{" "}
-              <span className="font-semibold text-blue-600">
-                {userStats.totalMinutes}
-              </span>{" "}
-              minutes today. Keep going to reach your 30-minute goal!
-            </p>
-            <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.min(
-                    (userStats.totalMinutes / 30) * 100,
-                    100
-                  )}%`,
-                }}
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              {Math.max(30 - userStats.totalMinutes, 0)} minutes remaining
-            </p>
           </div>
         </div>
       </div>

@@ -112,6 +112,95 @@ const SCENARIOS: Record<string, VideoCallScenario> = {
       customGreeting: "Welcome! Thank you for your interest in our university.",
     },
   },
+  "bank-visit": {
+    id: "bank-visit",
+    name: "Bank Visit",
+    description: "Handle financial transactions and account inquiries",
+    category: "Services",
+    difficulty: "Intermediate",
+    duration: "10-15 min",
+    gradient: "from-green-600 via-emerald-700 to-teal-800",
+    skills: ["Financial Terms", "Transactions", "Problem Solving"],
+    personaConfig: {
+      systemPrompt:
+        "You are a professional bank customer service representative.",
+      conversationalContext:
+        "This is a bank visit to handle financial transactions.",
+      customGreeting: "Welcome to our bank. How can I help you today?",
+    },
+  },
+  "family-dinner": {
+    id: "family-dinner",
+    name: "Family Dinner",
+    description: "Engage in natural, heartwarming conversations with family",
+    category: "Social",
+    difficulty: "Basics",
+    duration: "15-20 min",
+    gradient: "from-rose-500 via-pink-600 to-fuchsia-700",
+    skills: ["Storytelling", "Personal Updates", "Active Listening"],
+    personaConfig: {
+      systemPrompt:
+        "You are a warm and engaging family member at a lively family dinner.",
+      conversationalContext:
+        "This is a family dinner simulation where family members are catching up and sharing stories.",
+      customGreeting:
+        "Hey everyone! It's so wonderful to have us all together around the table. What's new?",
+    },
+  },
+  "travel-planning": {
+    id: "travel-planning",
+    name: "Travel Planning",
+    description: "Organize trips and discuss travel details with an agent",
+    category: "Services",
+    difficulty: "Intermediate",
+    duration: "20-25 min",
+    gradient: "from-sky-500 via-blue-600 to-indigo-700",
+    skills: ["Booking", "Itinerary", "Budgeting", "Negotiation"],
+    personaConfig: {
+      systemPrompt:
+        "You are an experienced travel agent helping a client plan a detailed trip.",
+      conversationalContext:
+        "This is a travel planning simulation where a client is working with a travel agent to organize a trip.",
+      customGreeting:
+        "Hello! Welcome, I'm so excited to help you plan your next adventure. Where have you been dreaming of going?",
+    },
+  },
+  "shopping-trip": {
+    id: "shopping-trip",
+    name: "Shopping Trip",
+    description: "Go shopping and discuss your preferences with a salesperson",
+    category: "Social",
+    difficulty: "Basics",
+    duration: "15-20 min",
+    gradient: "from-teal-500 via-cyan-600 to-blue-700",
+    skills: ["Shopping", "Product Discussion", "Negotiation"],
+    personaConfig: {
+      systemPrompt:
+        "You are a helpful and friendly salesperson in a retail store.",
+      conversationalContext:
+        "This is a shopping trip simulation where a customer is interacting with a salesperson in a retail store.",
+      customGreeting:
+        "Hi there! Welcome to our store. Is there anything in particular you're looking for today?",
+    },
+  },
+  "tech-support-call": {
+    id: "tech-support-call",
+    name: "Tech Support Call",
+    description: "Troubleshoot technical issues with a support agent",
+    category: "Services",
+    difficulty: "Intermediate",
+    duration: "20-25 min",
+    gradient: "from-gray-500 via-gray-600 to-slate-700",
+    skills: ["Problem Solving", "Technical Vocabulary", "Patience"],
+    personaConfig: {
+      systemPrompt:
+        "You are a patient and knowledgeable tech support agent guiding a user through a technical issue.",
+      conversationalContext:
+        "This is a tech support call simulation where a user is seeking help with a technical problem.",
+      customGreeting:
+        "Thank you for calling Tech Solutions. My name is Alex. How can I help you today?",
+    },
+  },
 };
 
 interface VideoCallPageProps {
