@@ -41,7 +41,17 @@ export const useRealtimeCall = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioChunksRef = useRef<Int16Array[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const processorRef = useRef<AudioWorkletNode | null>(null);
+
+  type Voice =
+    | "alloy"
+    | "echo"
+    | "shimmer"
+    | "ash"
+    | "ballad"
+    | "coral"
+    | "sage"
+    | "verse";
 
   // Get language-specific instructions
   const getLanguageInstructions = useCallback(
@@ -180,6 +190,50 @@ export const useRealtimeCall = ({
            - Introduis du nouveau vocabulaire naturellement
            - Corrige les erreurs sans casser le flux
            - Termine avec des encouragements et prochaines étapes`,
+
+        de: `Du bist Emma, eine erfahrene Deutschlehrerin. Sprich NUR auf Deutsch.
+           Du führst eine mündliche Konversationsstunde mit ${userName} durch, der/die auf dem Niveau ${levelText} ist.
+           
+           KERNVERHALTEN:
+           - Halte die Antworten möglichst unter 20 Wörtern
+           - Korrigiere sanft Aussprache- und Grammatikfehler
+           - Stelle Folgefragen, um die Konversation zu fördern
+           - Gib positives Feedback
+           - Passe dich dem Sprachniveau an
+           
+           KORREKTURSTIL:
+           - "Eigentlich wird das so ausgesprochen: [korrekte Aussprache]"
+           - "Gut! Nur eine kleine Anmerkung: Wir sagen [Korrektur] anstatt dessen"
+           - "Perfekte Aussprache! Versuche jetzt diesen Satz..."
+           
+           GESPRÄCHSFLUSS:
+           - Beginne mit einer Begrüßung mit dem Namen: "Hallo ${userName}! Wie geht's?"
+           - Frage nach dem Tag/den Interessen
+           - Führe neuen Wortschatz natürlich ein
+           - Korrigiere Fehler, ohne den Gesprächsfluss zu stören
+           - Beende mit Ermutigung und nächsten Schritten`,
+
+        german: `Du bist Emma, eine erfahrene Deutschlehrerin. Sprich NUR auf Deutsch.
+           Du führst eine mündliche Konversationsstunde mit ${userName} durch, der/die auf dem Niveau ${levelText} ist.
+           
+           KERNVERHALTEN:
+           - Halte die Antworten möglichst unter 20 Wörtern
+           - Korrigiere sanft Aussprache- und Grammatikfehler
+           - Stelle Folgefragen, um die Konversation zu fördern
+           - Gib positives Feedback
+           - Passe dich dem Sprachniveau an
+           
+           KORREKTURSTIL:
+           - "Eigentlich wird das so ausgesprochen: [korrekte Aussprache]"
+           - "Gut! Nur eine kleine Anmerkung: Wir sagen [Korrektur] anstatt dessen"
+           - "Perfekte Aussprache! Versuche jetzt diesen Satz..."
+           
+           GESPRÄCHSFLUSS:
+           - Beginne mit einer Begrüßung mit dem Namen: "Hallo ${userName}! Wie geht's?"
+           - Frage nach dem Tag/den Interessen
+           - Führe neuen Wortschatz natürlich ein
+           - Korrigiere Fehler, ohne den Gesprächsfluss zu stören
+           - Beende mit Ermutigung und nächsten Schritten`,
       };
 
       return (
@@ -190,6 +244,20 @@ export const useRealtimeCall = ({
     },
     []
   );
+
+  const getLanguageVoice = useCallback((language: string): Voice => {
+    const voices: { [key: string]: Voice } = {
+      es: "alloy",
+      spanish: "alloy",
+      en: "alloy",
+      english: "alloy",
+      fr: "alloy",
+      french: "alloy",
+      de: "alloy",
+      german: "alloy",
+    };
+    return voices[language.toLowerCase()] || "alloy";
+  }, []);
 
   // Audio playback function
   const playAudioChunks = useCallback(async (audioData: Int16Array) => {
@@ -259,73 +327,26 @@ export const useRealtimeCall = ({
 
         mediaStreamRef.current = stream;
 
-        // Create audio context with browser's default sample rate
+        // Create audio context
         const audioContext = new (window.AudioContext ||
           (window as any).webkitAudioContext)();
         audioContextRef.current = audioContext;
 
-        console.log("Audio context sample rate:", audioContext.sampleRate);
+        // Load the audio processor worklet
+        await audioContext.audioWorklet.addModule("/audio-processor.js");
 
         // Create audio source from microphone
         const source = audioContext.createMediaStreamSource(stream);
 
-        // Create script processor to capture audio data
-        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        // Create the audio worklet node
+        const processor = new AudioWorkletNode(audioContext, "audio-processor");
         processorRef.current = processor;
 
-        processor.onaudioprocess = (event) => {
+        // Listen for messages from the worklet (processed audio data)
+        processor.port.onmessage = (event) => {
           if (!sessionReadyRef.current || !clientRef.current) return;
-
-          const inputBuffer = event.inputBuffer;
-          const inputData = inputBuffer.getChannelData(0);
-
-          // Check if there's actual audio activity (not just silence)
-          const hasAudio = inputData.some((sample) => Math.abs(sample) > 0.01);
-
-          if (hasAudio) {
-            console.log(
-              "Sending audio data to API, audio level:",
-              Math.max(...Array.from(inputData).map(Math.abs))
-            );
-          }
-
-          // Resample to 24kHz if needed (OpenAI requires 24kHz)
-          let processedData = inputData;
-          if (audioContext.sampleRate !== 24000) {
-            // Simple resampling - for production, use a proper resampling library
-            const ratio = 24000 / audioContext.sampleRate;
-            const resampledLength = Math.floor(inputData.length * ratio);
-            const resampled = new Float32Array(resampledLength);
-
-            for (let i = 0; i < resampledLength; i++) {
-              const sourceIndex = i / ratio;
-              const index = Math.floor(sourceIndex);
-              const fraction = sourceIndex - index;
-
-              if (index + 1 < inputData.length) {
-                resampled[i] =
-                  inputData[index] * (1 - fraction) +
-                  inputData[index + 1] * fraction;
-              } else {
-                resampled[i] = inputData[index] || 0;
-              }
-            }
-            processedData = resampled;
-          }
-
-          // Convert Float32Array to Int16Array (required by OpenAI API)
-          const int16Data = new Int16Array(processedData.length);
-          for (let i = 0; i < processedData.length; i++) {
-            // Convert from [-1, 1] to [-32768, 32767]
-            int16Data[i] = Math.max(
-              -32768,
-              Math.min(32767, processedData[i] * 32768)
-            );
-          }
-
-          // Send audio data to OpenAI Realtime API
           try {
-            clientRef.current.appendInputAudio(int16Data);
+            clientRef.current.appendInputAudio(event.data);
           } catch (err) {
             console.error("Failed to send audio data:", err);
           }
@@ -333,11 +354,12 @@ export const useRealtimeCall = ({
 
         // Connect audio processing chain
         source.connect(processor);
-        processor.connect(audioContext.destination);
+        // We don't need to connect the processor to the destination
+        // unless we want to hear the microphone's raw output.
 
-        console.log("Microphone audio capture setup successfully");
+        console.log("Audio worklet setup successfully");
       } catch (micError) {
-        console.error("Microphone error:", micError);
+        console.error("Microphone or worklet error:", micError);
         setError(
           "Microphone access denied. Please allow microphone access to use call mode."
         );
@@ -353,7 +375,7 @@ export const useRealtimeCall = ({
       const client = clientRef.current;
 
       // Configure session
-      const language = user.learningLanguage || "en";
+      const language = user.learningLanguage;
       const userName = user.name || "there"; // Fallback if name is empty
       const instructions = getLanguageInstructions(
         language,
@@ -471,15 +493,20 @@ export const useRealtimeCall = ({
 
       // Configure session with updated instructions that tell AI to greet first
       const getGreetingMessage = (lang: string, name: string) => {
-        const greetings: Record<string, string> = {
+        const greetings = {
           es: `¡Hola ${name}! ¿Cómo estás?`,
           spanish: `¡Hola ${name}! ¿Cómo estás?`,
-          en: `Hi ${name}! How are you doing?`,
-          english: `Hi ${name}! How are you doing?`,
+          en: `Hi ${name}! How are you?`,
+          english: `Hi ${name}! How are you?`,
           fr: `Salut ${name}! Comment ça va?`,
           french: `Salut ${name}! Comment ça va?`,
+          de: `Hallo ${name}! Wie geht's?`,
+          german: `Hallo ${name}! Wie geht's?`,
         };
-        return greetings[lang.toLowerCase()] || greetings.en;
+        return (
+          greetings[lang.toLowerCase() as keyof typeof greetings] ||
+          greetings.en
+        );
       };
 
       const greetingMessage = getGreetingMessage(language, userName);
@@ -493,12 +520,9 @@ IMPORTANT: You MUST start the conversation. Your first message must be ONLY: "${
 
       client.updateSession({
         instructions: greetingInstructions,
-        voice: "alloy",
+        voice: getLanguageVoice(language),
         turn_detection: {
           type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,
         },
         input_audio_transcription: { model: "whisper-1" },
         input_audio_format: "pcm16",
@@ -509,17 +533,19 @@ IMPORTANT: You MUST start the conversation. Your first message must be ONLY: "${
 
       // Connect to API
       await client.connect();
-    } catch (err) {
-      console.error("Failed to connect:", err);
-      setError(
-        "Failed to connect to voice service. Please check your connection."
-      );
-      setIsConnected(false);
-      sessionReadyRef.current = false;
+    } catch (e: any) {
+      console.error("Error connecting to call:", e);
+      setError(`Connection failed: ${e.message}`);
     } finally {
       isConnectingRef.current = false;
     }
-  }, [user, getLanguageInstructions, onCallStart, playAudioChunks]);
+  }, [
+    user,
+    getLanguageInstructions,
+    onCallStart,
+    playAudioChunks,
+    getLanguageVoice,
+  ]);
 
   const disconnect = useCallback(() => {
     if (clientRef.current) {
