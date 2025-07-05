@@ -2,10 +2,9 @@
 
 import { Header } from "./Header";
 import { HeroSection } from "./HeroSection";
+import { WhyFluentzySection } from "./WhyFluentzySection";
 import { LanguageSelection } from "./LanguageSelection";
-import { FeaturesSection } from "./FeaturesSection";
 import { TestimonialsSection } from "./TestimonialsSection";
-import { DownloadSection } from "./DownloadSection";
 import { Footer } from "./Footer";
 
 export const LandingPage = () => {
@@ -13,10 +12,9 @@ export const LandingPage = () => {
     <div className="min-h-screen">
       <Header />
       <HeroSection />
+      <WhyFluentzySection />
       <LanguageSelection />
-      <FeaturesSection />
       <TestimonialsSection />
-      <DownloadSection />
       <Footer />
     </div>
   );
