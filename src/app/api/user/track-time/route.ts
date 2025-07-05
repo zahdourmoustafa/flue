@@ -55,6 +55,21 @@ export async function POST(request: Request) {
       } mode`
     );
 
+    // Get updated total minutes to check streak
+    const updatedStats = await db.query.userStats.findFirst({
+      where: eq(userStats.userId, user.id),
+    });
+
+    // Check and update streak if user completed 30 minutes
+    if (updatedStats && updatedStats.totalMinutes >= 30) {
+      try {
+        const { checkAndUpdateStreak } = await import("@/lib/streak-utils");
+        await checkAndUpdateStreak(user.id, updatedStats.totalMinutes);
+      } catch (error) {
+        console.error("Error checking streak:", error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       tracked: {

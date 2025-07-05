@@ -18,7 +18,7 @@ export const CurrentStreakCard = ({
       <CardHeader className="pb-4">
         <CardTitle className="text-xl font-bold">Current streak</CardTitle>
         <p className="text-muted-foreground">
-          Practice at least 3 minutes a day to complete a session.
+          Complete your 30-minute daily goal to maintain your streak.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">

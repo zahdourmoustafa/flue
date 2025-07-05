@@ -6,6 +6,8 @@ import {
   timestamp,
   boolean,
   pgEnum,
+  date,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -53,6 +55,7 @@ export const userStats = pgTable("user_stats", {
   achievements: integer("achievements").default(0).notNull(),
   streakDays: integer("streak_days").default(0).notNull(),
   lessonsCompleted: integer("lessons_completed").default(0).notNull(),
+  lastStreakDate: date("last_streak_date"),
   createdAt: timestamp("created_at")
     .$defaultFn(() => new Date())
     .notNull(),
@@ -60,6 +63,26 @@ export const userStats = pgTable("user_stats", {
     .$defaultFn(() => new Date())
     .notNull(),
 });
+
+export const dailyGoals = pgTable(
+  "daily_goals",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    goalDate: date("goal_date").notNull(),
+    minutesCompleted: integer("minutes_completed").default(0).notNull(),
+    goalCompleted: boolean("goal_completed").default(false).notNull(),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at")
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    userDateUnique: unique("user_date_unique").on(table.userId, table.goalDate),
+  })
+);
 
 export const userRelations = relations(user, ({ many, one }) => ({
   conversations: many(conversations),
@@ -71,11 +94,19 @@ export const userRelations = relations(user, ({ many, one }) => ({
     fields: [user.id],
     references: [subscriptions.userId],
   }),
+  dailyGoals: many(dailyGoals),
 }));
 
 export const userStatsRelations = relations(userStats, ({ one }) => ({
   user: one(user, {
     fields: [userStats.userId],
+    references: [user.id],
+  }),
+}));
+
+export const dailyGoalsRelations = relations(dailyGoals, ({ one }) => ({
+  user: one(user, {
+    fields: [dailyGoals.userId],
     references: [user.id],
   }),
 }));

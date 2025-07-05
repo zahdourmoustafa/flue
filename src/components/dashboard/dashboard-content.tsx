@@ -51,16 +51,31 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                   🎯 Daily Learning Goal
                 </h3>
-                <p className="text-gray-600 mb-6">
-                  You've completed{" "}
-                  <span className="font-semibold text-blue-600">
-                    {userStats.totalMinutes}
-                  </span>{" "}
-                  minutes today. Keep going to reach your 30-minute goal!
-                </p>
+                {userStats.totalMinutes >= 30 ? (
+                  <p className="text-gray-600 mb-6">
+                    🎉 Congratulations! You've completed your{" "}
+                    <span className="font-semibold text-green-600">
+                      30-minute
+                    </span>{" "}
+                    goal for today! Keep up the great work! 🔥 Current streak:{" "}
+                    {userStats.streakDays} days
+                  </p>
+                ) : (
+                  <p className="text-gray-600 mb-6">
+                    You've completed{" "}
+                    <span className="font-semibold text-blue-600">
+                      {userStats.totalMinutes}
+                    </span>{" "}
+                    minutes today. Keep going to reach your 30-minute goal!
+                  </p>
+                )}
                 <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                    className={`h-3 rounded-full transition-all duration-500 ${
+                      userStats.totalMinutes >= 30
+                        ? "bg-gradient-to-r from-green-500 to-green-600"
+                        : "bg-gradient-to-r from-blue-500 to-blue-600"
+                    }`}
                     style={{
                       width: `${Math.min(
                         (userStats.totalMinutes / 30) * 100,
@@ -70,7 +85,12 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  {Math.max(30 - userStats.totalMinutes, 0)} minutes remaining
+                  {userStats.totalMinutes >= 30
+                    ? "🎯 Goal achieved!"
+                    : `${Math.max(
+                        30 - userStats.totalMinutes,
+                        0
+                      )} minutes remaining`}
                 </p>
               </div>
             </div>
