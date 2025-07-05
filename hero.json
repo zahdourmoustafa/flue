@@ -1,0 +1,142 @@
+{
+    "designSystemName": "Organic & Warm Language App",
+    "description": "A design system characterized by a warm, soft color palette, a mix of serif and sans-serif typography, and rounded, friendly components. It aims for a clean, inviting, and organic user experience.",
+    "palette": {
+      "primary": {
+        "background": {
+          "value": "#F9F6F1",
+          "description": "A very light, warm off-white or beige, used for the main page background."
+        },
+        "text": {
+          "value": "#2D2D2D",
+          "description": "A dark charcoal color for primary text, providing high contrast without being pure black."
+        }
+      },
+      "accent": {
+        "orange": {
+          "value": "#F46036",
+          "description": "A vibrant, friendly orange used for highlighting key words or calls-to-action."
+        }
+      },
+      "components": {
+        "cardDefault": {
+          "value": "#FFFFFF",
+          "description": "Pure white used for default interactive elements like selection buttons."
+        },
+        "cardGreen": {
+          "value": "#34B37C",
+          "description": "A muted, earthy green for content cards."
+        },
+        "cardYellow": {
+          "value": "#FFD15C",
+          "description": "A warm, golden yellow for content cards."
+        },
+        "cardDarkRed": {
+          "value": "#5C3A3A",
+          "description": "A deep, brownish-red for content cards."
+        },
+        "textOnDark": {
+          "value": "#FFFFFF",
+          "description": "White text for use on colored card backgrounds."
+        },
+        "textSubtle": {
+          "value": "#6E6E6E",
+          "description": "A light gray for secondary text, like subtitles or captions."
+        }
+      }
+    },
+    "typography": {
+      "heading": {
+        "fontFamily": "Playfair Display, Georgia, serif",
+        "fontWeight": "400",
+        "fontSize": "2.5rem to 3.5rem (responsive)",
+        "lineHeight": "1.2",
+        "style": "normal",
+        "description": "A classic, elegant serif font for large headlines. The accent word uses the same font but a different color."
+      },
+      "subheading": {
+        "fontFamily": "Inter, 'Helvetica Neue', sans-serif",
+        "fontWeight": "500",
+        "fontSize": "1rem",
+        "lineHeight": "1.5",
+        "description": "A clean, readable sans-serif font for UI elements, button text, and card titles."
+      },
+      "body": {
+        "fontFamily": "Inter, 'Helvetica Neue', sans-serif",
+        "fontWeight": "400",
+        "fontSize": "0.875rem",
+        "lineHeight": "1.6",
+        "description": "The standard sans-serif font for smaller descriptive text or captions."
+      }
+    },
+    "layout": {
+      "grid": {
+        "description": "The overall layout is split into distinct sections. The left section is a structured, aligned grid for choices. The right section is a more organic, overlapping collage of cards.",
+        "gap": "16px"
+      },
+      "spacing": {
+        "unit": "8px",
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "32px",
+        "xxl": "48px"
+      }
+    },
+    "components": {
+      "selectionButton": {
+        "type": "button",
+        "style": {
+          "backgroundColor": "palette.components.cardDefault",
+          "borderRadius": "12px",
+          "padding": "16px",
+          "boxShadow": "0px 4px 15px rgba(0, 0, 0, 0.05)",
+          "display": "flex",
+          "alignItems": "center",
+          "gap": "12px",
+          "border": "1px solid #EAEAEA"
+        },
+        "typography": "subheading",
+        "icon": {
+          "size": "24px",
+          "style": "circular flag icons"
+        }
+      },
+      "contentCard": {
+        "type": "container",
+        "style": {
+          "borderRadius": "20px",
+          "boxShadow": "0px 8px 25px rgba(0, 0, 0, 0.08)",
+          "overflow": "hidden",
+          "color": "palette.components.textOnDark",
+          "padding": "24px"
+        },
+        "variants": {
+          "imageOnly": {
+            "description": "A card that is filled entirely by an image."
+          },
+          "textOverImage": {
+            "description": "A card with text overlaid on a full-bleed image, often with a gradient to ensure text legibility."
+          },
+          "solidColor": {
+            "description": "A card with a solid background color from the component palette, containing text and sometimes small illustrations."
+          }
+        }
+      }
+    },
+    "structure": {
+      "page": {
+        "layout": "Two-column responsive grid",
+        "leftColumn": {
+          "content": "Primary question/action area with clear selection options.",
+          "alignment": "Left-aligned text, grid of buttons."
+        },
+        "rightColumn": {
+          "content": "Inspirational/contextual content presented as a dynamic visual collage.",
+          "alignment": "Asymmetrical, overlapping elements to create depth and visual interest."
+        }
+      }
+    }
+  }
+  

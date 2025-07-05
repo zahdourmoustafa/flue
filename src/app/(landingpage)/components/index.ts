@@ -1,9 +1,9 @@
 export { Header } from "./Header";
 export { HeroSection } from "./HeroSection";
+export { WhyFluentzySection } from "./WhyFluentzySection";
 export { LanguageSelection } from "./LanguageSelection";
 export { StatsSection } from "./StatsSection";
 export { FeaturesSection } from "./FeaturesSection";
 export { TestimonialsSection } from "./TestimonialsSection";
-export { DownloadSection } from "./DownloadSection";
 export { Footer } from "./Footer";
 export { LandingPage } from "./LandingPage";
